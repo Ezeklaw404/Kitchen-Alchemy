@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:kitchen_alchemy/pages/favorites_page.dart';
+import 'package:kitchen_alchemy/pages/history_page.dart';
+import 'package:kitchen_alchemy/pages/inventory_page.dart';
+import 'package:kitchen_alchemy/pages/recipe_page.dart';
+import 'package:kitchen_alchemy/pages/scanner_page.dart';
+import 'package:kitchen_alchemy/pages/settings_page.dart';
+import 'package:kitchen_alchemy/pages/shopping_list_page.dart';
 
 void main() {
   runApp(const MainApp());
@@ -9,13 +16,21 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+      title: 'Kitchen Alchemy',
+      // theme: ThemeData(fontFamily: 'Cutive'),
+
+      initialRoute: '/inventory',
+      routes: {
+        '/favorites': (context) => FavoritesPage(),
+        '/history': (context) => HistoryPage(),
+        '/inventory': (context) => InventoryPage(),
+        '/recipe': (context) => RecipePage(),
+        '/scanner': (context) => ScannerPage(),
+        '/settings': (context) => SettingsPage(),
+        '/shop-list': (context) => ShoppingListPage()
+      },
     );
   }
 }
