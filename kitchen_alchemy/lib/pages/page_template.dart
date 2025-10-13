@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kitchen_alchemy/nav_menu.dart';
+import 'package:kitchen_alchemy/widgets/nav_menu.dart';
 import 'package:kitchen_alchemy/pages/nav_menu.dart';
 
 class PageTemplate extends StatelessWidget {
