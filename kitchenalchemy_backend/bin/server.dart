@@ -34,9 +34,13 @@ void main(List<String> args) async {
   // print('Server listening on port ${server.port}');
 
 
+  final ingredients = await getAllIngredients();
+  print('Loaded ${ingredients.length} ingredients');
+  print(ingredients.first.name);
 
-  List<Ingredient> list = await getAllIngredients();
+  final highestIdIngredient = ingredients.reduce((a, b) =>
+  int.parse(a.id) > int.parse(b.id) ? a : b);
 
-  print(list);
+  print('Last Item: ${highestIdIngredient.id} (${highestIdIngredient.name})');
 
 }

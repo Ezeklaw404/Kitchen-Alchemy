@@ -10,12 +10,12 @@ Future<List<Ingredient>> getAllIngredients() async {
   );
 
   if (response.statusCode == 200) {
-    final List<dynamic> data = jsonDecode(response.body);
+    final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+    final List<dynamic> data = jsonResponse['meals'];
     return data.map((json) => Ingredient.fromJson(json as Map<String, dynamic>)).toList();
   } else {
     throw Exception('Failed to load ingredients');
   }
-
 
 
 }
