@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "868993717361",
+    "project_id": "kitchen-alchemy-f3fd1",
+    "storage_bucket": "kitchen-alchemy-f3fd1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868993717361:android:3002ef46dbe6e1838077d0",
+        "android_client_info": {
+          "package_name": "com.ezeklawapps.kitchenalchemy.kitchen_alchemy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbtzJ-RX9jx484bymhso8ErreGZmlUjD8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

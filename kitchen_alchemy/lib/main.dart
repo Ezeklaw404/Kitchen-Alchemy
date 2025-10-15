@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/pages/favorites_page.dart';
 import 'package:kitchen_alchemy/pages/history_page.dart';
@@ -7,7 +8,11 @@ import 'package:kitchen_alchemy/pages/scanner_page.dart';
 import 'package:kitchen_alchemy/pages/settings_page.dart';
 import 'package:kitchen_alchemy/pages/shopping_list_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MainApp());
 }
 
