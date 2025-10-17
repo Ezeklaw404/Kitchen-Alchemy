@@ -9,6 +9,7 @@ class ScannerPage extends StatelessWidget {
     return PageTemplate(
       title: 'Scanner',
       route: '/scanner',
+      showDrawer: true,
       body: SingleChildScrollView(
         child: Center(child: Text('text'),),
       ),

@@ -9,6 +9,7 @@ class HistoryPage extends StatelessWidget {
     return PageTemplate(
       title: 'History',
       route: '/history',
+      showDrawer: true,
       body: SingleChildScrollView(
         child: Center(child: Text('text'),),
       ),

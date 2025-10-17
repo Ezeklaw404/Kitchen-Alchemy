@@ -9,6 +9,7 @@ class SettingsPage extends StatelessWidget {
     return PageTemplate(
       title: 'Settings',
       route: '/settings',
+      showDrawer: true,
       body: SingleChildScrollView(
         child: Center(child: Text('text'),),
       ),

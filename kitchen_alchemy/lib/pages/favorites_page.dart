@@ -9,6 +9,7 @@ class FavoritesPage extends StatelessWidget {
     return PageTemplate(
       title: 'Favorites',
       route: '/favorites',
+      showDrawer: true,
       body: SingleChildScrollView(
         child: Center(child: Text('text'),),
       ),

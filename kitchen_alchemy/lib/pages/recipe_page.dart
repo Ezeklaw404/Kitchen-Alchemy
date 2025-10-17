@@ -9,6 +9,7 @@ class RecipePage extends StatelessWidget {
     return PageTemplate(
       title: 'Recipes',
       route: '/recipe',
+      showDrawer: true,
       body: SingleChildScrollView(
         child: Center(child: Text('text'),),
       ),

@@ -6,6 +6,7 @@ class PageTemplate extends StatelessWidget {
   final String title;
   final Widget body;
   final String route;
+  final bool showDrawer;
   final Widget? floatingActionBtn;
 
   const PageTemplate({
@@ -13,6 +14,7 @@ class PageTemplate extends StatelessWidget {
     required this.title,
     required this.body,
     required this.route,
+    required this.showDrawer,
     this.floatingActionBtn
   });
 
@@ -24,7 +26,7 @@ class PageTemplate extends StatelessWidget {
       // style: TextStyle(color: Colors.amber, fontFamily: 'Cutive'),
     ),
       centerTitle: true,
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.amber,
 
       // actions: [
       //   ClipRect(
@@ -34,8 +36,16 @@ class PageTemplate extends StatelessWidget {
       //     fit: BoxFit.fitHeight,)
       //   )
       // ],
-    ),
-      drawer: NavMenu(currentPage:  route),
+
+      leading: showDrawer
+          ? null // when drawer is shown, Flutter adds hamburger automatically
+          : IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+
+   ),
+      drawer: showDrawer ? NavMenu(currentPage:  route) : null,
 
       // bottomNavigationBar: NavMenu(currentIndex: currentIndex),
 
