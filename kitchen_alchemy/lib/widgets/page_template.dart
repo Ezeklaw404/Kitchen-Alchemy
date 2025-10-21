@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/widgets/nav_menu.dart';
-import 'package:kitchen_alchemy/pages/nav_menu.dart';
 
 class PageTemplate extends StatelessWidget {
   final String title;
@@ -21,12 +20,12 @@ class PageTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.amber,
+      backgroundColor: Colors.amber.shade50,
     appBar: AppBar(title: Text(title,
       // style: TextStyle(color: Colors.amber, fontFamily: 'Cutive'),
     ),
       centerTitle: true,
-      backgroundColor: Colors.amber,
+      backgroundColor: Colors.amber.shade400,
 
       // actions: [
       //   ClipRect(

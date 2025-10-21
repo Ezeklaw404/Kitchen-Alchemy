@@ -5,8 +5,9 @@ class Ingredient {
   final String name;
   final String? description;
   final String? type;
+  bool isSelected;
 
-  const Ingredient({required this.id, required this.name, required this.description, required this.type});
+  Ingredient({required this.id, required this.name, required this.description, required this.type, this.isSelected = false});
 
   factory Ingredient.fromJson(Map<String, dynamic> json) {
     return Ingredient(

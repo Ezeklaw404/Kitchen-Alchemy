@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kitchen_alchemy/pages/page_template.dart';
+import 'package:kitchen_alchemy/widgets/page_template.dart';
 
 class RecipePage extends StatelessWidget {
   const RecipePage({super.key});

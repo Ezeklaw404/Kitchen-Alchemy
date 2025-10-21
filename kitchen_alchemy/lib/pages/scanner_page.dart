@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kitchen_alchemy/pages/page_template.dart';
+import 'package:kitchen_alchemy/widgets/page_template.dart';
 
 class ScannerPage extends StatelessWidget {
   const ScannerPage({super.key});

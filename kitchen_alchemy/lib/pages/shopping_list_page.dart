@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
-import 'package:kitchen_alchemy/pages/page_template.dart';
+import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/widgets/ingredient_item.dart';
 

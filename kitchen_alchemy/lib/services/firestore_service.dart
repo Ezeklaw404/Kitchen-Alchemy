@@ -34,8 +34,25 @@ class FirestoreService {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    await _firestore.collection('users').doc(user.uid).collection('shsopping_list')
+    await _firestore.collection('users').doc(user.uid).collection('shopping_list')
         .doc(ingredient.id).set(ingredient.toJson());
+  }
+
+
+
+  Future<void> addSelectedItems(List<Ingredient> ingredients, bool inventory) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final batch = _firestore.batch();
+
+    for (final ingredient in ingredients) {
+      final docRef = _firestore.collection('users').doc(user.uid)
+          .collection(inventory ? 'inventory' : 'shopping_list').doc(ingredient.id);
+
+      batch.set(docRef, ingredient.toJson());
+    }
+    await batch.commit();
   }
 
   Future<void> updateInventory(String userId, List<dynamic> inventory) async {
