@@ -71,4 +71,54 @@ class FirestoreService {
     return await _firestore.collection('users').doc(userId).get();
   }
 
+  Future<void> deleteInventoryItem(Ingredient ingredient) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final docRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('inventory')
+        .doc(ingredient.id);
+
+    try {
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        print('Ingredient not found in inventory: ${ingredient.name}');
+        return;
+      }
+
+      await docRef.delete();
+      print('Ingredient deleted: ${ingredient.name}');
+    } catch (e) {
+      print('Error deleting ingredient: $e');
+    }
+  }
+
+  Future<void> deleteShoppingListItem(Ingredient ingredient) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final docRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('shopping_list')
+        .doc(ingredient.id);
+
+    try {
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        print('Ingredient not found in shopping_list: ${ingredient.name}');
+        return;
+      }
+
+      await docRef.delete();
+      print('Ingredient deleted: ${ingredient.name}');
+    } catch (e) {
+      print('Error deleting ingredient: $e');
+    }
+  }
+
+
+
 }

@@ -1,48 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
+import 'package:kitchen_alchemy/widgets/ingredient_list.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/widgets/ingredient_item.dart';
 
-class InventoryPage extends StatelessWidget {
+class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<InventoryPage> createState() => _InventoryPageState();
+
+}
+
+  class _InventoryPageState extends State<InventoryPage> {
     final _service = FirestoreService();
+    List<Ingredient> _ingredients = [];
+    String? _error;
+
+    @override
+    void initState() {
+      super.initState();
+      _loadIngredients();
+    }
+
+    Future<void> _loadIngredients() async {
+      try {
+        final ingredients = await _service.getInventory();
+        setState(() => _ingredients = ingredients);
+      } catch (e) {
+        setState(() => _error = e.toString());
+      }
+    }
+
+    void _removeIngredient(Ingredient ingredient) async {
+      try {
+        await _service.deleteInventoryItem(ingredient);
+        setState(() {
+          _ingredients?.remove(ingredient);
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error deleting: $e')));
+      }
+    }
+
+
+  @override
+  Widget build(BuildContext context) {
+      Widget body;
+    if (_ingredients == null) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (_error != null) {
+      body = Center(child: Text('Error: $_error'));
+    } else {
+      body = IngredientListTemplate(
+        ingredients: _ingredients!,
+        removable: true,
+        onTap: _removeIngredient,
+      );
+    }
 
     return PageTemplate(
       title: 'Inventory',
       route: '/inventory',
       showDrawer: true,
-      body: FutureBuilder<List<Ingredient>>(
-        future: _service.getInventory(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Inventory is empty'));
-          }
+      body: body,
 
-          final ingredients = snapshot.data!;
-          return ListView.builder(
-            itemCount: ingredients.length,
-            itemBuilder: (context, index) {
-              return IngredientItem(
-                ingredient: ingredients[index],
-                onTap: () {},
-              );
-            },
-          );
-        },
-      ),
       floatingActionBtn: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/add-ingredient');
+          Navigator.pushNamed(context, '/add-ingredient', arguments: true);
         },
-        shape: CircleBorder(),
         child: const Icon(Icons.add),
       ),
     );

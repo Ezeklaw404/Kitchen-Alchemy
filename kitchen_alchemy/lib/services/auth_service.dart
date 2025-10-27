@@ -19,18 +19,18 @@ class AuthService {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    await userDoc.collection('inventory').doc('ingredient').set({
-      'id': 1,
-      'name': 'chicken',
-      'quantity': 250,
-      'unit': 'g',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    await userDoc.collection('shopping_list').doc('ingredient').set({
-      'id': 1,
-      'name': 'chicken',
-    });
+    // await userDoc.collection('inventory').doc('ingredient').set({
+    //   'id': 1,
+    //   'name': 'Chicken',
+    //   'quantity': 250,
+    //   'unit': 'g',
+    //   'createdAt': FieldValue.serverTimestamp(),
+    // });
+    //
+    // await userDoc.collection('shopping_list').doc('ingredient').set({
+    //   'id': 1,
+    //   'name': 'Chicken',
+    // });
 
 
     return user;

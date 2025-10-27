@@ -16,13 +16,6 @@ class IngredientService {
           return data.map((json) => Ingredient.fromJson(json)).toList();
         }
 
-        // If backend wraps it like { "ingredients": [...] }
-        if (data is Map && data['ingredients'] is List) {
-          return (data['ingredients'] as List)
-              .map((json) => Ingredient.fromJson(json))
-              .toList();
-        }
-
         throw Exception('Unexpected JSON structure');
       } else {
         throw Exception('Failed to load ingredients: ${response.statusCode}');

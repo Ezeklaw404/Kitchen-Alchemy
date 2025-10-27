@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/pages/add-ingredient_page.dart';
 import 'package:kitchen_alchemy/pages/favorites_page.dart';
@@ -9,11 +10,14 @@ import 'package:kitchen_alchemy/pages/settings_page.dart';
 import 'package:kitchen_alchemy/pages/shopping_list_page.dart';
 import 'package:kitchen_alchemy/services/firebase_service.dart';
 
+late final List<CameraDescription> cameras;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FirebaseService.init();
+  //cameras = await availableCameras();
+
 
   runApp(const MainApp());
 }
