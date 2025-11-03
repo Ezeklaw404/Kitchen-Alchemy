@@ -25,7 +25,7 @@ class PageTemplate extends StatelessWidget {
       // style: TextStyle(color: Colors.amber, fontFamily: 'Cutive'),
     ),
       centerTitle: true,
-      backgroundColor: Colors.amber.shade400,
+      backgroundColor: Color(0xFFE5A43D),
 
       // actions: [
       //   ClipRect(

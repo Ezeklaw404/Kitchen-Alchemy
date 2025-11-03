@@ -47,11 +47,11 @@ class NavDrawer extends StatelessWidget {
     bool selected = currentPage == route;
 
     return ListTile(
-      leading: Icon(icon, color: selected ? Colors.orange : null),
+      leading: Icon(icon, color: selected ? Color(0xFFE5A43D) : null),
       title: Text(
         title,
         style: TextStyle(
-          color: selected ? Colors.orange : null,
+          color: selected ? Color(0xFFE5A43D) : null,
           fontWeight: selected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
