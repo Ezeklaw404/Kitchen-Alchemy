@@ -14,7 +14,6 @@ class IngredientPage extends StatefulWidget {
 }
 
 class _IngredientPageState extends State<IngredientPage> {
-  //late final bool boolInventory;
   List<Ingredient> _ingredients = [];
   bool _isLoading = true;
   String? _error;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kitchen_alchemy/widgets/nav_menu.dart';
+import 'package:kitchen_alchemy/widgets/nav_drawer.dart';
 
 class PageTemplate extends StatelessWidget {
   final String title;
@@ -44,7 +44,7 @@ class PageTemplate extends StatelessWidget {
       ),
 
    ),
-      drawer: showDrawer ? NavMenu(currentPage:  route) : null,
+      drawer: showDrawer ? NavDrawer(currentPage:  route) : null,
 
       // bottomNavigationBar: NavMenu(currentIndex: currentIndex),
 

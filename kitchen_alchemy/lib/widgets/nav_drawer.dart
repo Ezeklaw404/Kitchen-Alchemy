@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
 
-class NavMenu extends StatelessWidget {
+class NavDrawer extends StatelessWidget {
   final String currentPage;
 
-  const NavMenu({super.key, required this.currentPage});
+  const NavDrawer({super.key, required this.currentPage});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.amber.shade50,
+
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
-            child: Text('Pages'),
+          DrawerHeader(
+            decoration: BoxDecoration(color: Color(0xFF110E0B)),
+            margin: EdgeInsets.zero,
+            padding: EdgeInsets.zero,
+
+              child: Image.asset(
+                'assets/images/kitchen_alchemy_logo.png',
+                fit: BoxFit.fitHeight,
+              ),
+
           ),
+
+
           _buildDrawerItem(context, Icons.home, 'Inventory', '/inventory'),
-          _buildDrawerItem(context, Icons.find_in_page_sharp, 'Recipes', '/recipe'),
+          _buildDrawerItem(context, Icons.find_in_page_sharp, 'Recipes', '/search',),
           _buildDrawerItem(context, Icons.camera, 'Scanner', '/scanner'),
           _buildDrawerItem(context, Icons.settings, 'Settings', '/settings'),
           _buildDrawerItem(context, Icons.list, 'Shopping List', '/shop-list'),
@@ -24,13 +35,15 @@ class NavMenu extends StatelessWidget {
           _buildDrawerItem(context, Icons.history, 'History', '/history'),
         ],
       ),
-
-      // backgroundColor: Colors.amber,
-      // indicatorColor: Colors.red,
     );
   }
 
-  Widget _buildDrawerItem(BuildContext context, IconData icon, String title, String route,) {
+  Widget _buildDrawerItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String route,
+  ) {
     bool selected = currentPage == route;
 
     return ListTile(

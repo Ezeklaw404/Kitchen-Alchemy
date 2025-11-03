@@ -11,7 +11,6 @@ class IngredientService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // If backend returns a JSON array
         if (data is List) {
           return data.map((json) => Ingredient.fromJson(json)).toList();
         }
@@ -29,12 +28,12 @@ class IngredientService {
 
   Future<Ingredient> getIngredient(int id) async{
     final response = await http.get(
-      Uri.parse('$baseUrl/$id'),
+      Uri.parse('$baseUrl/ingredients/$id'),
     );
     if (response.statusCode == 200) {
       return Ingredient.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
-      throw Exception('Failed to load Creature');
+      throw Exception('Failed to load Ingredient');
     }
   }
 
