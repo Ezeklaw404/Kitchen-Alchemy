@@ -1,9 +1,11 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kitchen_alchemy/pages/add-ingredient_page.dart';
 import 'package:kitchen_alchemy/pages/favorites_page.dart';
 import 'package:kitchen_alchemy/pages/history_page.dart';
 import 'package:kitchen_alchemy/pages/inventory_page.dart';
+import 'package:kitchen_alchemy/pages/recipe_page.dart';
 import 'package:kitchen_alchemy/pages/search_page.dart';
 import 'package:kitchen_alchemy/pages/scanner_page.dart';
 import 'package:kitchen_alchemy/pages/settings_page.dart';
@@ -17,6 +19,11 @@ void main() async {
 
   await FirebaseService.init();
 
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(const MainApp());
 }
@@ -38,6 +45,7 @@ class MainApp extends StatelessWidget {
         '/inventory': (context) => InventoryPage(),
         '/add-ingredient': (context) => IngredientPage(),
         '/search': (context) => SearchPage(),
+        '/recipe': (context) => RecipePage(),
         '/scanner': (context) => ScannerPage(),
         '/settings': (context) => SettingsPage(),
         '/shop-list': (context) => ShoppingListPage()

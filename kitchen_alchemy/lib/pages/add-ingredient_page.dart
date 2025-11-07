@@ -20,20 +20,31 @@ class _IngredientPageState extends State<IngredientPage> {
   String query = '';
 
   final Set<String> _selectedIngredients = {};
-
+  late final List<Ingredient> _userIngredients;
   final IngredientService _service = IngredientService();
 
   @override
   void initState() {
     super.initState();
-    _loadIngredients();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map?;
+      _userIngredients = args?['ingredients'] as List<Ingredient>? ?? [];
+      _loadIngredients();
+    });
   }
 
   Future<void> _loadIngredients() async {
     try {
       final ingredients = await _service.getAllIngredients();
+
+      final filtered = ingredients.where((ingredient) {
+        return !_userIngredients.any((existing) =>
+        existing.name.toLowerCase() == ingredient.name.toLowerCase());
+      }).toList();
+
       setState(() {
-        _ingredients = ingredients;
+        _ingredients = filtered;
         _isLoading = false;
       });
     } catch (e) {
@@ -51,7 +62,8 @@ class _IngredientPageState extends State<IngredientPage> {
 
   @override
   Widget build(BuildContext context) {
-    final boolInventory = ModalRoute.of(context)!.settings.arguments as bool? ?? false;
+    final args = ModalRoute.of(context)!.settings.arguments as Map?;
+    final bool boolInventory = args?['isInventory'] as bool? ?? false;
 
     return PageTemplate(
       title: 'Add Ingredient',
@@ -66,7 +78,6 @@ class _IngredientPageState extends State<IngredientPage> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'CutiveMono',
               ),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
@@ -77,7 +88,6 @@ class _IngredientPageState extends State<IngredientPage> {
                 labelStyle: TextStyle(
                   color: Colors.black,
 
-                  //fontFamily: 'Cutive',
                 ),
               ),
             ),
@@ -149,111 +159,3 @@ class _IngredientPageState extends State<IngredientPage> {
     );
   }
 }
-
-// @override
-// Widget build(BuildContext context) {
-//   return PageTemplate(
-//     title: 'Add Ingredient',
-//     route: '/add-ingredient',
-//     showDrawer: false,
-//
-//     body: IngredientListTemplate(
-//       ingredients: _service.getAllIngredients(),
-//       onTap: (ingredient) {
-//         setState(() {
-//           ingredient.isSelected = !ingredient.isSelected;
-//         });
-//       },
-//     ),
-//
-//     floatingActionBtn: FloatingActionButton(
-//       onPressed: () {
-//         final selected = _ingredients.where((i) => i.isSelected).toList();
-//
-//         if (selected.isEmpty) {
-//           ScaffoldMessenger.of(context).showSnackBar(
-//             const SnackBar(content: Text('No ingredients selected!')),
-//           );
-//           return;
-//         }
-//         _addItems(selected);
-//         Navigator.pushReplacementNamed(context, '/inventory');
-//       },
-//       child: Text('Add'),
-//     ),
-//   );
-// }
-// // Column(
-// //   children: [
-// //     Padding(
-// //       padding: const EdgeInsets.all(8.0),
-// //       child: TextField(
-// //         onChanged: (value) => setState(() => query = value.toLowerCase()),
-// //         style: const TextStyle(
-// //           fontSize: 18,
-// //           fontWeight: FontWeight.bold,
-// //           fontFamily: 'CutiveMono',
-// //         ),
-// //         decoration: const InputDecoration(
-// //           border: OutlineInputBorder(),
-// //           focusedBorder: OutlineInputBorder(
-// //             borderSide: BorderSide(color: Color(0xFF1B5E20)),
-// //           ),
-// //           labelText: 'Enter Name or Id',
-// //           labelStyle: TextStyle(
-// //             color: Colors.black,
-// //             // fontFamily: 'Cutive',
-// //           ),
-// //         ),
-// //       ),
-// //     ),
-// //
-// //     if (_isLoading)
-// //       const Expanded(child: Center(child: CircularProgressIndicator()))
-// //     else if (_error != null)
-// //       Expanded(child: Center(child: Text('Error: $_error')))
-// //     else
-// //       // filtered list
-// //       Expanded(child: _buildIngredientList()),
-// //   ],
-// // ),
-//
-// //
-// // Widget _buildIngredientList() {
-// //   final filtered = _ingredients
-// //       .where(
-// //         (i) =>
-// //             i.name.toLowerCase().contains(query) ||
-// //             i.id.toLowerCase().contains(query),
-// //       )
-// //       .toList();
-// //
-// //   if (filtered.isEmpty) {
-// //     return const Center(child: Text('No Ingredients match your search'));
-// //   }
-// //
-// //   return ListView.builder(
-// //     itemCount: filtered.length,
-// //     itemBuilder: (context, index) {
-// //       final ingredient = filtered[index];
-// //       final isSelected = _selectedIngredients.contains(ingredient.id);
-// //       return Card(
-// //         margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-// //         elevation: 2,
-// //         shape: RoundedRectangleBorder(
-// //           borderRadius: BorderRadius.circular(10),
-// //         ),
-// //         color: ingredient.isSelected
-// //             ? Colors.blue[100]
-// //             : Colors.amber.shade50,
-// //         child: IngredientItem(
-// //           ingredient: ingredient,
-// //           onTap: () {
-// //             setState(() {
-// //               ingredient.isSelected = !ingredient.isSelected;
-// //             });
-// //           },
-// //         ),
-// //       );
-// //     },
-// //   );

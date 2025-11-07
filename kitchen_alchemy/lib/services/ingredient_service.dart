@@ -28,12 +28,46 @@ class IngredientService {
 
   Future<Ingredient> getIngredient(int id) async{
     final response = await http.get(
-      Uri.parse('$baseUrl/ingredients/$id'),
+      Uri.parse('$baseUrl/ingredients/id=$id'),
     );
     if (response.statusCode == 200) {
       return Ingredient.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       throw Exception('Failed to load Ingredient');
+    }
+  }
+
+  Future<Ingredient?> getIngredientByName(String name) async{
+    final response = await http.get(
+      Uri.parse('$baseUrl/ingredients/$name'),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data == null || (data is List && data.isEmpty)) {
+        return null; // nothing found
+      }
+      return Ingredient.fromJson(data);
+    } else if (response.statusCode == 404) {
+      // Not found ->
+      return null;
+    } else {
+      throw Exception('Failed to load Ingredient: ${response.statusCode}');
+    }
+  }
+
+  Future<void> addIngredient(String name) async{
+    final response = await http.post(
+      Uri.parse('$baseUrl/ingredients'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "name": name.trim(),
+        "description": null, // optional
+        "type": null,        // optional
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add ingredient');
     }
   }
 

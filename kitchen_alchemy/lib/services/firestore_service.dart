@@ -120,5 +120,19 @@ class FirestoreService {
   }
 
 
+  Future<bool> hasInventory(String ingredientId, {bool inventory = true}) async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final doc = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection(inventory ? 'inventory' : 'shopping_list')
+        .doc(ingredientId)
+        .get();
+
+    return doc.exists;
+  }
+
 
 }

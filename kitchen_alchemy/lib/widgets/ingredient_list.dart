@@ -65,6 +65,6 @@ class IngredientListTemplate extends StatelessWidget {
         );
       },
     );
-    return scrollable ? Expanded(child: list) : list;
+    return list;
   }
 }

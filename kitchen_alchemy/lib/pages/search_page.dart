@@ -15,22 +15,29 @@ class _SearchPageState extends State<SearchPage> {
   final _service = RecipeService();
   List<Recipe> recipes = [];
   bool isLoading = true;
+  final TextEditingController _controller = TextEditingController();
+  String query = '';
 
   @override
   void initState() {
     super.initState();
-    fetchRecipe();
+    getRecipe('chicken');
   }
 
-  void fetchRecipe() async {
-    final tempRecipes = await _service.getRecipes('chicken');
+  void getRecipe(String name) async {
+    if (name.trim().isEmpty) return;
+    setState(() {
+      isLoading = true;
+    });
+
+    final tempRecipes = await _service.getRecipes(name);
 
     setState(() {
       recipes = tempRecipes;
       isLoading = false;
+      query = name;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -38,38 +45,55 @@ class _SearchPageState extends State<SearchPage> {
       title: 'Recipes',
       route: '/search',
       showDrawer: true,
-      body: Center(
-        child: isLoading
-            ? const CircularProgressIndicator() // show spinner while loading
-            : recipes.isEmpty
-            ? const Text('No recipes found')
-            : ListView.builder(
-        itemCount: recipes.length,
-        itemBuilder: (context, index) {
-          return RecipeItem(
-            recipe: recipes[index],
-            onTap: () {
-              // TODO: show recipe details
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Clicked: ${recipes[index].name}'),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                hintText: 'Search recipes...',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    final query = _controller.text.trim();
+                    if (query.isNotEmpty) {
+                      getRecipe(query);
+                    }
+                  },
                 ),
-              );
-            },
-          );
-        },
-      ),
+                border: const OutlineInputBorder(),
+              ),
+              onSubmitted: (query) {
+                if (query.isNotEmpty) getRecipe(query);
+              },
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: isLoading
+                  ? const CircularProgressIndicator()
+                  : recipes.isEmpty
+                  ? const Text('No recipes found')
+                  : ListView.builder(
+                itemCount: recipes.length,
+                itemBuilder: (context, index) {
+                  return RecipeItem(
+                    recipe: recipes[index],
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/recipe',
+                        arguments: {'recipe': recipes[index]},
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
-
-
-
 }
-
-
-
-
-
-
-

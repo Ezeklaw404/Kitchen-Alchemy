@@ -69,7 +69,8 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
 
       floatingActionBtn: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/add-ingredient', arguments: false);
+          Navigator.pushNamed(context, '/add-ingredient',
+            arguments: {'isInventory': false, 'ingredients': _ingredients},);
         },
         child: const Icon(Icons.add_shopping_cart),
       ),

@@ -14,7 +14,6 @@ class ScannerPage extends StatelessWidget {
       title: 'Scanner',
       route: '/scanner',
       showDrawer: true,
-      //floatingActionBtn: CameraButton(camera: camera),
       body: SingleChildScrollView(
         child: Center(
           child: CameraScreen()

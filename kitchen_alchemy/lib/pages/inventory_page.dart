@@ -10,52 +10,55 @@ class InventoryPage extends StatefulWidget {
 
   @override
   State<InventoryPage> createState() => _InventoryPageState();
-
 }
 
-  class _InventoryPageState extends State<InventoryPage> {
-    final _service = FirestoreService();
-    List<Ingredient> _ingredients = [];
-    String? _error;
+class _InventoryPageState extends State<InventoryPage> {
+  final _service = FirestoreService();
+  List<Ingredient> _ingredients = [];
+  String? _error;
+  String output = '';
 
-    @override
-    void initState() {
-      super.initState();
-      _loadIngredients();
+  @override
+  void initState() {
+    super.initState();
+    _loadIngredients();
+  }
+
+  Future<void> _loadIngredients() async {
+    try {
+      final ingredients = await _service.getInventory();
+      setState(() {
+        _ingredients = ingredients;
+        output = 'Your Inventory is Empty';
+      });
+    } catch (e) {
+      setState(() => _error = e.toString());
     }
+  }
 
-    Future<void> _loadIngredients() async {
-      try {
-        final ingredients = await _service.getInventory();
-        setState(() => _ingredients = ingredients);
-      } catch (e) {
-        setState(() => _error = e.toString());
-      }
+  void _removeIngredient(Ingredient ingredient) async {
+    try {
+      await _service.deleteInventoryItem(ingredient);
+      setState(() {
+        _ingredients?.remove(ingredient);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error deleting: $e')));
     }
-
-    void _removeIngredient(Ingredient ingredient) async {
-      try {
-        await _service.deleteInventoryItem(ingredient);
-        setState(() {
-          _ingredients?.remove(ingredient);
-        });
-      } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error deleting: $e')));
-      }
-    }
-
+  }
 
   @override
   Widget build(BuildContext context) {
-      Widget body;
-    if (_ingredients == null) {
-      body = const Center(child: CircularProgressIndicator());
+    Widget body;
+    if (_ingredients.isEmpty) {
+      body = Center(child: Text(output));
     } else if (_error != null) {
       body = Center(child: Text('Error: $_error'));
     } else {
       body = IngredientListTemplate(
-        ingredients: _ingredients!,
+        ingredients: _ingredients,
         removable: true,
         onTap: _removeIngredient,
       );
@@ -69,7 +72,11 @@ class InventoryPage extends StatefulWidget {
 
       floatingActionBtn: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/add-ingredient', arguments: true);
+          Navigator.pushNamed(
+            context,
+            '/add-ingredient',
+            arguments: {'isInventory': true, 'ingredients': _ingredients},
+          );
         },
         child: const Icon(Icons.add),
       ),

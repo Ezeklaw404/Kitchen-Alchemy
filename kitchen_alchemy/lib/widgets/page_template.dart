@@ -3,17 +3,17 @@ import 'package:kitchen_alchemy/widgets/nav_drawer.dart';
 
 class PageTemplate extends StatelessWidget {
   final String title;
-  final Widget body;
   final String route;
   final bool showDrawer;
+  final Widget body;
   final Widget? floatingActionBtn;
 
   const PageTemplate({
     super.key,
     required this.title,
-    required this.body,
     required this.route,
     required this.showDrawer,
+    required this.body,
     this.floatingActionBtn
   });
 
@@ -48,8 +48,9 @@ class PageTemplate extends StatelessWidget {
 
       // bottomNavigationBar: NavMenu(currentIndex: currentIndex),
 
-      body: Padding(
-        padding: EdgeInsets.all(16),
+      body:
+      Padding(
+        padding: EdgeInsets.all(8),
         child: body,
       ),
 

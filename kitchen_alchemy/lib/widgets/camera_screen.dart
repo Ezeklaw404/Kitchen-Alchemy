@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kitchen_alchemy/models/barcode_product.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/services/barcode_service.dart';
@@ -16,14 +17,29 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  // late Future<void> _initializeControllerFuture;
-  // final MobileScannerController _controller = MobileScannerController();
-  String _scanResult = 'No scan yet';
+  String _scanResult = '';
   bool _isProcessing = false;
   final _barcodeService = BarcodeService();
   final _ingredientService = IngredientService();
   final _dbService = FirestoreService();
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scanResult = 'No scan yet';
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
 
   Future<void> _loadBarcode(String barcode) async {
     if (_isProcessing) return;
@@ -35,7 +51,9 @@ class _CameraScreenState extends State<CameraScreen> {
       );
       if (product == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No product found for this barcode.')),
+          const SnackBar(
+            content: Text('No product found for this barcode.'),
+          ), //TODO ive never seen this, usually just says scan error instead
         );
         return;
       }
@@ -51,29 +69,46 @@ class _CameraScreenState extends State<CameraScreen> {
       // https://pub.dev/packages/string_similarity
 
       if (!mounted) return;
+
       await showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => BarcodeResult(
           productName: product.productName,
           matchedIngredients: matches.map((i) => i.name).toList(),
-          onAddToInventory: (selectedName) {
-            final selectedIngredient =
-            matches.firstWhere((i) => i.name == selectedName);
-            Navigator.pop(context);
-            _dbService.addInventory(selectedIngredient);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Added to Inventory!')),
+          onAddToInventory: (selectedName) async {
+            final selectedIngredient = matches.firstWhere(
+              (i) => i.name == selectedName,
             );
+            Navigator.pop(context);
+
+            if ( await _dbService.hasInventory(selectedName, inventory: true)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Already in Inventory')),
+              );
+            } else {
+              _dbService.addInventory(selectedIngredient);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Added to Inventory!')),
+              );
+            }
           },
-          onAddToShoppingList: (selectedName) {
-            final selectedIngredient =
-            matches.firstWhere((i) => i.name == selectedName);
-            Navigator.pop(context);
-            _dbService.addShoppingList(selectedIngredient);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Added to Shopping List!')),
+          onAddToShoppingList: (selectedName) async {
+            final selectedIngredient = matches.firstWhere(
+              (i) => i.name == selectedName,
             );
+            Navigator.pop(context);
+
+            if (await _dbService.hasInventory(selectedName, inventory: false)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Already in Shopping List')),
+              );
+            } else {
+              _dbService.addShoppingList(selectedIngredient);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Added to Shopping List!')),
+              );
+            }
           },
           onCancel: () {
             Navigator.pop(context);
@@ -91,23 +126,30 @@ class _CameraScreenState extends State<CameraScreen> {
       ).showSnackBar(SnackBar(content: Text('Failed to load barcode: $e')));
     } finally {
       setState(() => _isProcessing = false);
-      // _controller.start();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          height: 500,
+        Container(
+          width: screenWidth,
+          height: screenWidth * 4 / 3,
+          // 4:3 aspect ratio, adjust as needed
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(3),
+            // border: Border.all(color: Color(0xFF110E0B), width: 3),
+          ),
+          clipBehavior: Clip.hardEdge,
           child: MobileScanner(
-            // controller: _controller,
             onDetect: (barcodeCapture) {
               final barcode = barcodeCapture.barcodes.first;
               final rawValue = barcode.rawValue ?? '';
 
-              // Ignore empty or QR codes
               if (barcode.format == BarcodeFormat.qrCode || rawValue.isEmpty) {
                 return;
               }
