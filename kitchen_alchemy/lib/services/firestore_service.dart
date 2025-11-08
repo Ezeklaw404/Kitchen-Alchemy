@@ -134,5 +134,29 @@ class FirestoreService {
     return doc.exists;
   }
 
+  Future<void> addRecipeToShoppingList(List<Ingredient> recipeIngredients) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final batch = _firestore.batch();
+    final shoppingListRef = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('shopping_list');
+
+    for (final ingredient in recipeIngredients) {
+      final docRef = shoppingListRef.doc(ingredient.id);
+
+      final alreadyInInventory = await hasInventory(ingredient.id, inventory: true);
+      final alreadyInShoppingList = await hasInventory(ingredient.id, inventory: false);
+
+      if (alreadyInInventory || alreadyInShoppingList) continue;
+
+      batch.set(docRef, ingredient.toJson());
+    }
+
+    await batch.commit();
+  }
+
 
 }

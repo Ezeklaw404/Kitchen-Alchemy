@@ -22,7 +22,6 @@ class NavDrawer extends StatelessWidget {
                 'assets/images/kitchen_alchemy_logo.png',
                 fit: BoxFit.fitHeight,
               ),
-
           ),
 
 

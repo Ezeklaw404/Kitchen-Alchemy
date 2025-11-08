@@ -82,7 +82,7 @@ class _CameraScreenState extends State<CameraScreen> {
             );
             Navigator.pop(context);
 
-            if ( await _dbService.hasInventory(selectedName, inventory: true)) {
+            if ( await _dbService.hasInventory(selectedIngredient.id, inventory: true)) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Already in Inventory')),
               );
@@ -99,7 +99,7 @@ class _CameraScreenState extends State<CameraScreen> {
             );
             Navigator.pop(context);
 
-            if (await _dbService.hasInventory(selectedName, inventory: false)) {
+            if (await _dbService.hasInventory(selectedIngredient.id, inventory: false)) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Already in Shopping List')),
               );

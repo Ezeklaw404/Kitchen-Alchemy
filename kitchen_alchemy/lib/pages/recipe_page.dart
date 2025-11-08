@@ -1,4 +1,6 @@
+import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/models/recipe.dart';
+import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:flutter/material.dart';
 
@@ -7,12 +9,33 @@ class RecipePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _service = FirestoreService();
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final recipe = args['recipe'] as Recipe;
     return PageTemplate(
         title: recipe.name,
         route: '/recipe',
         showDrawer: false,
+        floatingActionBtn: ElevatedButton(
+          onPressed: () async {
+
+            final ingredientList = recipe.ingredients.entries.map((entry) {
+              return Ingredient(
+                id: entry.key,
+                name: entry.value,
+                description: '',
+                type: '',
+              );
+            }).toList();
+
+            await _service.addRecipeToShoppingList(ingredientList);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Added missing ingredients to Shopping List')),
+            );
+          },
+          child: const Text('Add All to Shopping List'),
+        ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Center(
@@ -62,7 +85,7 @@ class RecipePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 for (final entry in recipe.ingredients.entries)
-                  Text('${entry.key}: ${entry.value}'),
+                  Text('${entry.value}: ${entry.key}'),
 
                 const SizedBox(height: 24),
 
@@ -77,7 +100,7 @@ class RecipePage extends StatelessWidget {
 
                 if (recipe.youtubeUrl != null && recipe.youtubeUrl!.isNotEmpty)
                   TextButton.icon(
-                    onPressed: () {},
+                    onPressed: () {},  //TODO imbed the video link here or just the link idk
                     icon: const Icon(Icons.video_library),
                     label: const Text('Watch on YouTube'),
                   ),
