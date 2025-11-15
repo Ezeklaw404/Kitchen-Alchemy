@@ -10,6 +10,7 @@ class SettingsPage extends StatelessWidget {
       title: 'Settings',
       route: '/settings',
       showDrawer: true,
+      navIndex: -1,
       body: SingleChildScrollView(
         child: Center(child: Text('text'),),
       ),

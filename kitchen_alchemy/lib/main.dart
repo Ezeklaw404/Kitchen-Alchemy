@@ -1,4 +1,3 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kitchen_alchemy/pages/add-ingredient_page.dart';
@@ -12,7 +11,7 @@ import 'package:kitchen_alchemy/pages/settings_page.dart';
 import 'package:kitchen_alchemy/pages/shopping_list_page.dart';
 import 'package:kitchen_alchemy/services/firebase_service.dart';
 
-late final List<CameraDescription> cameras;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +24,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const MainApp());
+  runApp(MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -33,10 +32,32 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryBlueDark = Color(0xFF0F3570);
+    final Color primaryBlueLight = Color(0xFF7AA6ED);
+
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Kitchen Alchemy',
-      // theme: ThemeData(fontFamily: 'Cutive'),
+       theme: ThemeData(
+      // fontFamily: 'Cutive'
+         elevatedButtonTheme: ElevatedButtonThemeData(
+           style: ElevatedButton.styleFrom(
+             backgroundColor: primaryBlueLight,
+             foregroundColor: primaryBlueDark,
+           ),
+         ),
+         textButtonTheme: TextButtonThemeData(
+           style: TextButton.styleFrom(
+             foregroundColor: primaryBlueLight,
+           ),
+         ),
+         floatingActionButtonTheme: FloatingActionButtonThemeData(
+           backgroundColor: primaryBlueLight,
+           foregroundColor: primaryBlueDark,
+         ),
+
+       ),
 
       initialRoute: '/inventory',
       routes: {

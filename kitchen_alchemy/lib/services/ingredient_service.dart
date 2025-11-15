@@ -38,6 +38,9 @@ class IngredientService {
   }
 
   Future<Ingredient?> getIngredientByName(String name) async{
+    if (name.contains(' ')) {
+      name = name.replaceAll(' ', '_');
+    }
     final response = await http.get(
       Uri.parse('$baseUrl/ingredients/$name'),
     );

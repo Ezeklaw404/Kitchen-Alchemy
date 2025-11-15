@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/widgets/ingredient_list.dart';
@@ -22,6 +23,28 @@ class _InventoryPageState extends State<InventoryPage> {
   void initState() {
     super.initState();
     _loadIngredients();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showFlushbarFromArgs();
+    });
+  }
+
+  void _showFlushbarFromArgs() {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null && args['showFlushbar'] == true) {
+      final message = args['message'] ?? '';
+      final color = args['color'] ?? Theme.of(context).colorScheme.primary;
+
+      Flushbar(
+        message: message,
+        duration: const Duration(seconds: 2),
+        flushbarPosition: FlushbarPosition.TOP,
+        margin: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(12),
+        backgroundColor: color,
+        messageColor: Color(0xFF0F3570),
+      ).show(context);
+    }
   }
 
   Future<void> _loadIngredients() async {
@@ -51,16 +74,18 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) {
+
+
     Widget body;
-    if (_ingredients.isEmpty) {
-      body = Center(child: Text(output));
-    } else if (_error != null) {
+    if (_error != null) {
       body = Center(child: Text('Error: $_error'));
+    } else if (_ingredients.isEmpty) {
+      body = Center(child: Text(output));
     } else {
       body = IngredientListTemplate(
         ingredients: _ingredients,
         removable: true,
-        onTap: _removeIngredient,
+        onRemove: _removeIngredient,
       );
     }
 
@@ -68,6 +93,7 @@ class _InventoryPageState extends State<InventoryPage> {
       title: 'Inventory',
       route: '/inventory',
       showDrawer: true,
+      navIndex: 0,
       body: body,
 
       floatingActionBtn: FloatingActionButton(

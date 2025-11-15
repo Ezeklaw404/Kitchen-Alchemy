@@ -1,41 +1,35 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/models/recipe.dart';
 import 'package:kitchen_alchemy/services/firestore_service.dart';
+import 'package:kitchen_alchemy/services/ingredient_service.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:flutter/material.dart';
 
-class RecipePage extends StatelessWidget {
+
+class RecipePage extends StatefulWidget {
   const RecipePage({super.key});
 
   @override
+  State<RecipePage> createState() => _RecipePageState();
+}
+
+class _RecipePageState extends State<RecipePage> {
+  bool _isLoading = false;
+
+
+  @override
   Widget build(BuildContext context) {
-    final _service = FirestoreService();
+    final service = FirestoreService();
+    final ingService = IngredientService();
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final recipe = args['recipe'] as Recipe;
+
     return PageTemplate(
         title: recipe.name,
         route: '/recipe',
         showDrawer: false,
-        floatingActionBtn: ElevatedButton(
-          onPressed: () async {
-
-            final ingredientList = recipe.ingredients.entries.map((entry) {
-              return Ingredient(
-                id: entry.key,
-                name: entry.value,
-                description: '',
-                type: '',
-              );
-            }).toList();
-
-            await _service.addRecipeToShoppingList(ingredientList);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Added missing ingredients to Shopping List')),
-            );
-          },
-          child: const Text('Add All to Shopping List'),
-        ),
+        navIndex: -2,
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Center(
@@ -87,6 +81,56 @@ class RecipePage extends StatelessWidget {
                 for (final entry in recipe.ingredients.entries)
                   Text('${entry.value}: ${entry.key}'),
 
+                const SizedBox(height: 12),
+                SizedBox(
+                  child: ElevatedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                      setState(() => _isLoading = true);
+
+                      try {
+                        List<Ingredient> ingredientList = [];
+
+                        for (final entry in recipe.ingredients.entries) {
+                          final ingredient = await ingService.getIngredientByName(entry.key);
+                          if (ingredient != null) ingredientList.add(ingredient);
+                        }
+
+                        await service.addRecipeToShoppingList(ingredientList);
+
+
+                        Flushbar(
+                          message: 'Added missing ingredients to Shopping List',
+                          duration: const Duration(seconds: 2),
+                          flushbarPosition: FlushbarPosition.TOP,
+                          margin: const EdgeInsets.all(16),
+                          borderRadius: BorderRadius.circular(12),
+                          backgroundColor: Color(0xFF7AA6ED),
+                          messageColor: Color(0xFF0F3570),
+                        ).show(context);
+
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      } finally {
+                        setState(() => _isLoading = false);
+                      }
+                    },
+
+                    child: _isLoading
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                        : const Text('Add to Shopping List'),
+                  ),
+                ),
                 const SizedBox(height: 24),
 
                 const Text(
@@ -115,7 +159,16 @@ class RecipePage extends StatelessWidget {
             ),
           ),
         ),
+
+
     );
   }
 
 }
+
+
+
+
+
+
+

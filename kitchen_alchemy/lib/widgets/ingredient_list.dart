@@ -7,11 +7,13 @@ class IngredientListTemplate extends StatelessWidget {
   final bool scrollable;
   final bool removable;
   final void Function(Ingredient)? onTap;
+  final void Function(Ingredient)? onRemove;
 
   const IngredientListTemplate({
     super.key,
     required this.ingredients,
     this.onTap,
+    this.onRemove,
     this.scrollable = true,
     required this.removable,
   });
@@ -33,21 +35,20 @@ class IngredientListTemplate extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           color: ingredient.isSelected
-              ? Colors.blue[100]
-              : Colors.amber.shade50,
+              ? Colors.orangeAccent
+              : Color(0xFFfffbf5),
           child: Stack(
             children: [
               // Main card tap area (selectable)
               Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  onTap: removable
-                      ? null
-                      : () => onTap?.call(ingredient),
+                child:  onTap != null
+                    ? InkWell(
+                  onTap: () => onTap?.call(ingredient),
                   borderRadius: BorderRadius.circular(10),
 
                     child: IngredientItem(ingredient: ingredient),
-                ),
+                ) : IngredientItem(ingredient: ingredient),
               ),
 
               // Delete button in top-right if removable
@@ -57,7 +58,7 @@ class IngredientListTemplate extends StatelessWidget {
                   top: 4,
                   child: IconButton(
                     icon: const Icon(Icons.close, color: Colors.redAccent),
-                    onPressed: () => onTap?.call(ingredient),
+                    onPressed: () => onRemove?.call(ingredient),
                   ),
                 ),
             ],

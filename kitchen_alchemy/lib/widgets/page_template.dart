@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:kitchen_alchemy/widgets/nav_bar.dart';
 import 'package:kitchen_alchemy/widgets/nav_drawer.dart';
 
 class PageTemplate extends StatelessWidget {
   final String title;
   final String route;
   final bool showDrawer;
+  final int navIndex;
   final Widget body;
   final Widget? floatingActionBtn;
 
@@ -13,6 +15,7 @@ class PageTemplate extends StatelessWidget {
     required this.title,
     required this.route,
     required this.showDrawer,
+    required this.navIndex,
     required this.body,
     this.floatingActionBtn
   });
@@ -29,8 +32,8 @@ class PageTemplate extends StatelessWidget {
 
       // actions: [
       //   ClipRect(
-      //     borderRadius: BorderRadius.circular(100),
-      //     child: Image.asset('assets/images/kitchen-logo.jpg',
+      //     // borderRadius: BorderRadius.circular(100),
+      //     child: Image.asset('assets/images/kitchen-alchemy-logo.jpg',
       //     height: 40,
       //     fit: BoxFit.fitHeight,)
       //   )
@@ -54,6 +57,8 @@ class PageTemplate extends StatelessWidget {
         child: body,
       ),
 
+      bottomNavigationBar: navIndex <= -2 ? null
+      : NavBar(currentIndex: navIndex),
       floatingActionButton: floatingActionBtn,
     );
   }

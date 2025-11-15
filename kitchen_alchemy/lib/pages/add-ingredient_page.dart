@@ -1,4 +1,6 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+import 'package:kitchen_alchemy/main.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/widgets/ingredient_list.dart';
@@ -69,6 +71,7 @@ class _IngredientPageState extends State<IngredientPage> {
       title: 'Add Ingredient',
       route: '/add-ingredient',
       showDrawer: false,
+      navIndex: -2,
       body: Column(
         children: [
           Padding(
@@ -104,17 +107,24 @@ class _IngredientPageState extends State<IngredientPage> {
       floatingActionBtn: FloatingActionButton(
         onPressed: () {
           final selected = _ingredients.where((i) => i.isSelected).toList();
-          if (selected.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No ingredients added')),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${selected.length} ingredients added')),
-            );
+
+          if (selected.isNotEmpty) {
             _addItems(selected, boolInventory);
           }
-          Navigator.pushReplacementNamed(context, boolInventory ? '/inventory' : '/shop-list');
+            Navigator.pushReplacementNamed(
+              context,
+              boolInventory ? '/inventory' : '/shop-list',
+              arguments: {
+                'showFlushbar': true,
+                'message': selected.isEmpty
+                    ? 'No ingredients added'
+                    : '${selected.length} ingredients added',
+                'color': selected.isEmpty
+                    ? Color(0xFFFFCDD2) //error
+                    : Color(0xFF7AA6ED),
+              },
+            );
+
         },
         child: Text('Add'),
       ),
@@ -125,36 +135,22 @@ class _IngredientPageState extends State<IngredientPage> {
     final filtered = _ingredients
         .where(
           (i) =>
-              i.name.toLowerCase().contains(query) ||
-              i.id.toLowerCase().contains(query),
-        )
+      i.name.toLowerCase().contains(query) ||
+          i.id.toLowerCase().contains(query),
+    )
         .toList();
+
     if (filtered.isEmpty) {
       return const Center(child: Text('No Ingredients match your search'));
     }
-    return ListView.builder(
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final ingredient = filtered[index];
-        final isSelected = _selectedIngredients.contains(ingredient.id);
-        return Card(
-          margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          color: ingredient.isSelected
-              ? Colors.blue[100]
-              : Colors.amber.shade50,
-          child: IngredientItem(
-            ingredient: ingredient,
-            onTap: () {
-              setState(() {
-                ingredient.isSelected = !ingredient.isSelected;
-              });
-            },
-          ),
-        );
+
+    return IngredientListTemplate(
+      ingredients: filtered,
+      removable: false,
+      onTap: (ingredient) {
+        setState(() {
+          ingredient.isSelected = !ingredient.isSelected;
+        });
       },
     );
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/models/recipe.dart';
+import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/services/recipe_service.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:kitchen_alchemy/widgets/recipe_item.dart';
@@ -14,6 +16,8 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final _service = RecipeService();
   List<Recipe> recipes = [];
+  final _dbService = FirestoreService();
+  List<String> _userIngredients = [];
   bool isLoading = true;
   final TextEditingController _controller = TextEditingController();
   String query = '';
@@ -21,6 +25,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    getUserIngredients();
     getRecipe('chicken');
   }
 
@@ -39,12 +44,21 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  void getUserIngredients() async {
+    final List<Ingredient> ingredients = await _dbService.getInventory();
+    setState(() {
+      _userIngredients = ingredients.map((i) => i.name).toList();
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return PageTemplate(
       title: 'Recipes',
       route: '/search',
       showDrawer: true,
+      navIndex: 2,
       body: Column(
         children: [
           Padding(
@@ -80,6 +94,7 @@ class _SearchPageState extends State<SearchPage> {
                 itemBuilder: (context, index) {
                   return RecipeItem(
                     recipe: recipes[index],
+                    userIngredients: _userIngredients,
                     onTap: () {
                       Navigator.pushNamed(
                         context,
