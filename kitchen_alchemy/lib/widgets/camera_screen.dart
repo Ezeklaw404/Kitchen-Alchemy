@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kitchen_alchemy/models/barcode_product.dart';
@@ -41,6 +42,22 @@ class _CameraScreenState extends State<CameraScreen> {
     super.dispose();
   }
 
+  void _showFlushbar({required String message, bool isError = false,}) {
+    final color = isError
+        ? const Color(0xFFFFCDD2) // error
+        : const Color(0xFF7AA6ED); // success
+
+    Flushbar(
+      message: message,
+      duration: const Duration(seconds: 2),
+      flushbarPosition: FlushbarPosition.TOP,
+      margin: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(12),
+      backgroundColor: color,
+      messageColor: const Color(0xFF0F3570),
+    ).show(context);
+  }
+
   Future<void> _loadBarcode(String barcode) async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
@@ -50,11 +67,8 @@ class _CameraScreenState extends State<CameraScreen> {
         barcode,
       );
       if (product == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No product found for this barcode.'),
-          ), //TODO ive never seen this, usually just says scan error instead
-        );
+        _showFlushbar(message: 'No product found for this barcode',
+            isError: true); //TODO ive never seen this, usually just says scan error instead
         return;
       }
 
@@ -83,14 +97,14 @@ class _CameraScreenState extends State<CameraScreen> {
             Navigator.pop(context);
 
             if ( await _dbService.hasInventory(selectedIngredient.id, inventory: true)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Already in Inventory')),
-              );
+              _showFlushbar(message: 'Already in Inventory',
+                  isError: false);
+
             } else {
               _dbService.addInventory(selectedIngredient);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Added to Inventory!')),
-              );
+              _showFlushbar(message: 'Added to Inventory!',
+                  isError: false);
+
             }
           },
           onAddToShoppingList: (selectedName) async {
@@ -100,14 +114,12 @@ class _CameraScreenState extends State<CameraScreen> {
             Navigator.pop(context);
 
             if (await _dbService.hasInventory(selectedIngredient.id, inventory: false)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Already in Shopping List')),
-              );
+              _showFlushbar(message: 'Already in Shopping List',
+                  isError: false);
             } else {
               _dbService.addShoppingList(selectedIngredient);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Added to Shopping List!')),
-              );
+              _showFlushbar(message: 'Added to Shopping List!',
+                  isError: false);
             }
           },
           onCancel: () {
@@ -121,9 +133,8 @@ class _CameraScreenState extends State<CameraScreen> {
       });
     } catch (e, stack) {
       debugPrint('Error loading barcode: $e\n$stack');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to load barcode: $e')));
+      _showFlushbar(message: 'Failed to load barcode: $e',
+          isError: true);
     } finally {
       setState(() => _isProcessing = false);
     }
