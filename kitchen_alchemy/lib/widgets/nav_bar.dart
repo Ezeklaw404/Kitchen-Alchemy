@@ -15,7 +15,7 @@ class NavBar extends StatelessWidget {
       destinations: [
         NavigationDestination(icon: Icon(Icons.kitchen, color: currentIndex == 0 ? Color(0xFF0F3570) : Color(0xFFE5A43D)), label: 'Inventory'),
         NavigationDestination(icon: Icon(Icons.camera, color: currentIndex == 1 ? Color(0xFF0F3570) : Color(0xFFE5A43D)), label: 'Scanner'),
-        NavigationDestination(icon: Icon(Icons.restaurant, color: currentIndex == 2 ? Color(0xFF0F3570) : Color(0xFFE5A43D)), label: 'Search'),
+        NavigationDestination(icon: Icon(Icons.restaurant, color: currentIndex == 2 ? Color(0xFF0F3570) : Color(0xFFE5A43D)), label: 'Recipes'),
         NavigationDestination(icon: Icon(Icons.list, color: currentIndex == 3 ? Color(0xFF0F3570) : Color(0xFFE5A43D)), label: 'Shopping List'),
       ],
       selectedIndex: currentIndex >= 0 ? currentIndex : 0,

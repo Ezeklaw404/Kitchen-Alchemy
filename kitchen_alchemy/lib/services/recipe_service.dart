@@ -14,16 +14,32 @@ class RecipeService {
             .map((recipe) => Recipe.fromJson(recipe as Map<String, dynamic>))
             .toList();
       } else if (response.statusCode == 404) {
-        // No recipes found — not really an error
         return [];
       } else {
-        // Something unexpected (server error, etc.)
         throw Exception('Failed to load recipes: ${response.statusCode}');
       }
     } catch (e) {
-      // Network or parsing failure — also return empty list to avoid crashing
       print('getRecipes() error: $e');
       return [];
     }
   }
+
+  Future<Recipe?> getRecipeById(String id) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/recipe/id=$id'));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body) as Map<String, dynamic>;
+        return Recipe.fromJson(data);
+      } else if (response.statusCode == 404) {
+        return null; // recipe not found
+      } else {
+        throw Exception('Failed to load recipe: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('getRecipeById() error: $e');
+      return null;
+    }
+  }
+
+
 }

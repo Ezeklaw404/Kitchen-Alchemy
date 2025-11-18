@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
+import 'package:kitchen_alchemy/models/recipe.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -156,6 +157,60 @@ class FirestoreService {
     }
 
     await batch.commit();
+  }
+
+
+  Future<void> addFavorite(String recipeId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(recipeId)
+        .set({
+      'recipeId': recipeId,
+    });
+  }
+
+  Future<void> removeFavorite(String recipeId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(recipeId)
+        .delete();
+  }
+
+  Future<bool> isFavorite(String recipeId) async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final doc = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .doc(recipeId)
+        .get();
+
+    return doc.exists;
+  }
+
+  Future<List<String>> getFavoriteRecipes() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
+
+    final favDocs = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorites')
+        .get();
+
+    return favDocs.docs.map((d) => d.id).toList();
   }
 
 

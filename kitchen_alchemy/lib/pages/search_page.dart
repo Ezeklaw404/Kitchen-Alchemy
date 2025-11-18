@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/models/recipe.dart';
 import 'package:kitchen_alchemy/services/firestore_service.dart';
+import 'package:kitchen_alchemy/services/local_storage_service.dart';
 import 'package:kitchen_alchemy/services/recipe_service.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:kitchen_alchemy/widgets/recipe_item.dart';
@@ -43,6 +44,7 @@ class _SearchPageState extends State<SearchPage> {
       query = name;
     });
   }
+
 
   void getUserIngredients() async {
     final List<Ingredient> ingredients = await _dbService.getInventory();
@@ -95,11 +97,14 @@ class _SearchPageState extends State<SearchPage> {
                   return RecipeItem(
                     recipe: recipes[index],
                     userIngredients: _userIngredients,
-                    onTap: () {
+                    onTap: () async {
+                      await LocalStorageService.instance.addToHistory(recipes[index]);
                       Navigator.pushNamed(
                         context,
                         '/recipe',
-                        arguments: {'recipe': recipes[index]},
+                        arguments: {
+                          'recipe': recipes[index],
+                        },
                       );
                     },
                   );

@@ -15,21 +15,62 @@ class RecipePage extends StatefulWidget {
 }
 
 class _RecipePageState extends State<RecipePage> {
+  final _service = FirestoreService();
+  final _ingService = IngredientService();
   bool _isLoading = false;
+  late bool isFavorite;
+  bool favSet = false;
+  late final recipe;
 
 
   @override
-  Widget build(BuildContext context) {
-    final service = FirestoreService();
-    final ingService = IngredientService();
+  void initState() {
+    super.initState();
+    checkFavoriteStatus();
+  }
+
+  Future<void> checkFavoriteStatus() async {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final recipe = args['recipe'] as Recipe;
+    recipe = args['recipe'] as Recipe;
+
+    final fav = await FirestoreService().isFavorite(recipe.id);
+    setState(() {
+      isFavorite = fav;
+      favSet = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!favSet) {
+      checkFavoriteStatus();
+    }
+
+
 
     return PageTemplate(
         title: recipe.name,
         route: '/recipe',
         showDrawer: false,
         navIndex: -2,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red.shade600 : Color(0xFF0F3570),
+            ),
+            onPressed: () async {
+              setState(() {
+                isFavorite = !isFavorite;
+              });
+              if (isFavorite) {
+                await _service.addFavorite(recipe.id);
+              } else {
+                await _service.removeFavorite(recipe.id);
+              }
+            },
+          ),
+        ],
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Center(
@@ -93,11 +134,11 @@ class _RecipePageState extends State<RecipePage> {
                         List<Ingredient> ingredientList = [];
 
                         for (final entry in recipe.ingredients.entries) {
-                          final ingredient = await ingService.getIngredientByName(entry.key);
+                          final ingredient = await _ingService.getIngredientByName(entry.key);
                           if (ingredient != null) ingredientList.add(ingredient);
                         }
 
-                        await service.addRecipeToShoppingList(ingredientList);
+                        await _service.addRecipeToShoppingList(ingredientList);
 
 
                         Flushbar(

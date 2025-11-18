@@ -9,6 +9,7 @@ class PageTemplate extends StatelessWidget {
   final int navIndex;
   final Widget body;
   final Widget? floatingActionBtn;
+  final List<Widget>? actions;
 
   const PageTemplate({
     super.key,
@@ -17,7 +18,8 @@ class PageTemplate extends StatelessWidget {
     required this.showDrawer,
     required this.navIndex,
     required this.body,
-    this.floatingActionBtn
+    this.floatingActionBtn,
+    this.actions,
   });
 
   @override
@@ -26,18 +28,13 @@ class PageTemplate extends StatelessWidget {
       backgroundColor: Colors.amber.shade50,
     appBar: AppBar(title: Text(title,
       // style: TextStyle(color: Colors.amber, fontFamily: 'Cutive'),
+
     ),
       centerTitle: true,
+      titleSpacing: 0,
       backgroundColor: Color(0xFFE5A43D),
 
-      // actions: [
-      //   ClipRect(
-      //     // borderRadius: BorderRadius.circular(100),
-      //     child: Image.asset('assets/images/kitchen-alchemy-logo.jpg',
-      //     height: 40,
-      //     fit: BoxFit.fitHeight,)
-      //   )
-      // ],
+      actions: actions,
 
       leading: showDrawer
           ? null // when drawer is shown, Flutter adds hamburger automatically
