@@ -98,29 +98,27 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
 
     final selectedIngredients =
     _ingredients.where((i) => _selectedIds.contains(i.id)).toList();
+    if (selectedIngredients.isEmpty) return;
 
-    for (final ingredient in selectedIngredients) {
-      final alreadyInInventory =
-      await _service.hasInventory(ingredient.id, inventory: true);
+    try {
+      await _service.moveIngredientsToInventory(selectedIngredients);
 
-      if (!alreadyInInventory) {
-        await _service.addSelectedItems([ingredient], true);
-      }
+      setState(() {
+        _ingredients.removeWhere((i) => _selectedIds.contains(i.id));
+        _selectMode = false;
+        _selectedIds.clear();
+      });
 
-      await _service.deleteShoppingListItem(ingredient);
+      _showFlushbar(
+        message: 'All ingredients moved to inventory',
+        color: const Color(0xFF7AA6ED),
+      );
+    } catch (e) {
+      _showFlushbar(
+        message: 'Error moving ingredients: $e',
+        color: Colors.red.shade400,
+      );
     }
-
-    setState(() {
-      _ingredients.removeWhere((i) => _selectedIds.contains(i.id));
-      _selectMode = false;
-      _selectedIds.clear();
-    });
-
-
-    _showFlushbar(
-      message: 'All ingredients moved to inventory',
-      color: Color(0xFF7AA6ED),
-    );
   }
 
   void _showFlushbar({required String message, required Color color}) {

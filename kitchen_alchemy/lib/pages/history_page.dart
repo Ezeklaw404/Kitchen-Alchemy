@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_alchemy/models/recipe.dart';
+import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/services/local_storage_service.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:kitchen_alchemy/widgets/recipe_item.dart';
@@ -13,14 +14,21 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   List<Recipe> historyRecipes = [];
+  List<String> userIngredients = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    loadUserIngredients();
     loadHistory();
   }
 
+  void loadUserIngredients() async {
+    final ing = await FirestoreService().getInventory();
+    userIngredients = ing.map((i) => i.name).toList();
+    setState(() {});
+  }
   void loadHistory() async {
     setState(() {
       isLoading = true;
@@ -52,7 +60,7 @@ class _HistoryPageState extends State<HistoryPage> {
             itemBuilder: (context, index) {
               return RecipeItem(
                 recipe: historyRecipes[index],
-                userIngredients: [],
+                userIngredients: userIngredients,
                 onTap: () {
                   Navigator.pushNamed(
                     context,

@@ -96,6 +96,52 @@ class FirestoreService {
     }
   }
 
+  Future<void> removeInventoryIngredients(List<Ingredient> ingredients) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final batch = _firestore.batch();
+
+    for (final ingredient in ingredients) {
+      final docRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('inventory')
+          .doc(ingredient.id);
+
+      batch.delete(docRef);
+    }
+
+    await batch.commit();
+  }
+
+  Future<void> moveIngredientsToInventory(List<Ingredient> ingredients) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final batch = _firestore.batch();
+
+    for (final ingredient in ingredients) {
+      // Add to inventory
+      final inventoryRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('inventory')
+          .doc(ingredient.id);
+      batch.set(inventoryRef, ingredient.toJson());
+
+      // Remove from shopping list
+      final shoppingRef = _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('shopping_list')
+          .doc(ingredient.id);
+      batch.delete(shoppingRef);
+    }
+
+    await batch.commit();
+  }
+
   Future<void> deleteShoppingListItem(Ingredient ingredient) async {
     final user = _auth.currentUser;
     if (user == null) return;

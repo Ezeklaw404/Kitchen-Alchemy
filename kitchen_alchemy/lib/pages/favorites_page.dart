@@ -15,12 +15,20 @@ class FavoritesPage extends StatefulWidget {
 class _FavoritesPageState extends State<FavoritesPage> {
   final _service = RecipeService();
   List<Recipe> favoriteRecipes = [];
+  List<String> userIngredients = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    loadUserIngredients();
     loadFavorites();
+  }
+
+  void loadUserIngredients() async {
+    final ing = await FirestoreService().getInventory();
+    userIngredients = ing.map((i) => i.name).toList();
+    setState(() {});
   }
 
   void loadFavorites() async {
@@ -64,7 +72,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             itemBuilder: (context, index) {
               return RecipeItem(
                 recipe: favoriteRecipes[index],
-                userIngredients: [],
+                userIngredients: userIngredients,
                 onTap: () {
                   Navigator.pushNamed(
                     context,

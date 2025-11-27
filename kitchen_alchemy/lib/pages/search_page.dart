@@ -30,6 +30,7 @@ class _SearchPageState extends State<SearchPage> {
     getRecipe('chicken');
   }
 
+
   void getRecipe(String name) async {
     if (name.trim().isEmpty) return;
     setState(() {
@@ -38,11 +39,33 @@ class _SearchPageState extends State<SearchPage> {
 
     final tempRecipes = await _service.getRecipes(name);
 
+    tempRecipes.sort((a, b) {
+      final pa = ingredientMatchPercent(a);
+      final pb = ingredientMatchPercent(b);
+
+      return pb.compareTo(pa);
+    });
     setState(() {
       recipes = tempRecipes;
       isLoading = false;
       query = name;
     });
+  }
+
+  double ingredientMatchPercent(Recipe recipe) {
+    if (_userIngredients.isEmpty) return 0;
+
+    final total = recipe.ingredients.length;
+    int matches = 0;
+
+    for (final entry in recipe.ingredients.entries) {
+      final ingredientName = entry.key.toLowerCase().trim();
+      if (_userIngredients.any((u) => u.toLowerCase() == ingredientName)) {
+        matches++;
+      }
+    }
+
+    return matches / total;
   }
 
 
