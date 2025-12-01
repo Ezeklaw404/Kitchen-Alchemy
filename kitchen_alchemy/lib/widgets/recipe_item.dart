@@ -35,7 +35,6 @@ class _RecipeItemState extends State<RecipeItem> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Main recipe row
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -66,8 +65,8 @@ class _RecipeItemState extends State<RecipeItem> {
                         Text(
                           widget.recipe.name,
                           style: const TextStyle(
+                            fontFamily: 'AbrilFatface',
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (widget.recipe.category != null)
@@ -113,7 +112,6 @@ class _RecipeItemState extends State<RecipeItem> {
                     },
                   ),
 
-                // 🔹 Expand button (stays exactly the same)
                 IconButton(
                   icon: Icon(
                     _expanded
@@ -129,7 +127,6 @@ class _RecipeItemState extends State<RecipeItem> {
               ],
             ),
 
-            // 🔹 Expanded ingredient list — this is OUTSIDE the Row and button
             if (_expanded)
               Padding(
                 padding: const EdgeInsets.symmetric(

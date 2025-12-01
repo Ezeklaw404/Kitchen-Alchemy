@@ -36,3 +36,15 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/kitchen_alchemy_logo.png
+    - assets/images/loading.gif
+    - assets/images/rolling-loading.gif
+    - assets/images/mixing-bowl.gif
+    - assets/images/mixing-machine.gif
+
+  fonts:
+    - family: AbrilFatface
+      fonts:
+        - asset: assets/fonts/AbrilFatface-Regular.ttf
+    - family: Lato
+      fonts:
+        - asset: assets/fonts/Lato-Regular.ttf

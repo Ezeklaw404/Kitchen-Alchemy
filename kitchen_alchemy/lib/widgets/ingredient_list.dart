@@ -39,7 +39,6 @@ class IngredientListTemplate extends StatelessWidget {
               : Color(0xFFfffbf5),
           child: Stack(
             children: [
-              // Main card tap area (selectable)
               Material(
                 color: Colors.transparent,
                 child:  onTap != null
@@ -51,11 +50,11 @@ class IngredientListTemplate extends StatelessWidget {
                 ) : IngredientItem(ingredient: ingredient),
               ),
 
-              // Delete button in top-right if removable
               if (removable)
                 Positioned(
-                  right: 4,
-                  top: 4,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
                   child: IconButton(
                     icon: const Icon(Icons.close, color: Colors.redAccent),
                     onPressed: () => onRemove?.call(ingredient),

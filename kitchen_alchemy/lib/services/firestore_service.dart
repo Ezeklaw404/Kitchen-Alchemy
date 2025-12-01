@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
-import 'package:kitchen_alchemy/models/recipe.dart';
+
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -27,8 +27,17 @@ class FirestoreService {
     final user = _auth.currentUser;
     if (user == null) return;
 
+    final ingredientWithDate = Ingredient(
+      id: ingredient.id,
+      name: ingredient.name,
+      description: ingredient.description,
+      type: ingredient.type,
+      dateAdded: DateTime.now(),
+      isSelected: ingredient.isSelected,
+    );
+
     await _firestore.collection('users').doc(user.uid).collection('inventory')
-        .doc(ingredient.id).set(ingredient.toJson());
+        .doc(ingredient.id).set(ingredientWithDate.toJson());
   }
 
   Future<void> addShoppingList(Ingredient ingredient) async {
@@ -38,7 +47,6 @@ class FirestoreService {
     await _firestore.collection('users').doc(user.uid).collection('shopping_list')
         .doc(ingredient.id).set(ingredient.toJson());
   }
-
 
 
   Future<void> addSelectedItems(List<Ingredient> ingredients, bool inventory) async {
@@ -51,10 +59,22 @@ class FirestoreService {
       final docRef = _firestore.collection('users').doc(user.uid)
           .collection(inventory ? 'inventory' : 'shopping_list').doc(ingredient.id);
 
-      batch.set(docRef, ingredient.toJson());
+      final ingredientToAdd = inventory
+          ? Ingredient(
+        id: ingredient.id,
+        name: ingredient.name,
+        description: ingredient.description,
+        type: ingredient.type,
+        dateAdded: DateTime.now(),
+        isSelected: ingredient.isSelected,
+      )
+          : ingredient;
+
+      batch.set(docRef, ingredientToAdd.toJson());
     }
     await batch.commit();
   }
+
 
   Future<void> updateInventory(String userId, List<dynamic> inventory) async {
     await _firestore.collection('users').doc(userId).update({
@@ -128,7 +148,16 @@ class FirestoreService {
           .doc(user.uid)
           .collection('inventory')
           .doc(ingredient.id);
-      batch.set(inventoryRef, ingredient.toJson());
+
+      final ingredientWithDate = Ingredient(
+        id: ingredient.id,
+        name: ingredient.name,
+        description: ingredient.description,
+        type: ingredient.type,
+        dateAdded: DateTime.now(),
+        isSelected: ingredient.isSelected,
+      );
+      batch.set(inventoryRef, ingredientWithDate.toJson());
 
       // Remove from shopping list
       final shoppingRef = _firestore

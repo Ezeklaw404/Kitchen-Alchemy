@@ -17,6 +17,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final _service = RecipeService();
   List<Recipe> recipes = [];
+  List<Recipe> allRecipes = [];
   final _dbService = FirestoreService();
   List<String> _userIngredients = [];
   bool isLoading = true;
@@ -27,16 +28,39 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     getUserIngredients();
-    getRecipe('chicken');
+    loadAllRecipes();
   }
 
+  void loadAllRecipes() async {
+    setState(() => isLoading = true);
+
+    final fetched = await _service.getAllRecipes();
+    allRecipes = fetched;
+
+    allRecipes.sort((a, b) {
+      final pa = ingredientMatchPercent(a);
+      final pb = ingredientMatchPercent(b);
+      return pb.compareTo(pa);
+    });
+
+    setState(() {
+      recipes = List.from(allRecipes);
+      isLoading = false;
+    });
+  }
 
   void getRecipe(String name) async {
-    if (name.trim().isEmpty) return;
+    if (allRecipes.isEmpty) return;
+
+    if (name.trim().isEmpty) {
+      setState(() {
+        recipes = List.from(allRecipes);
+      });
+      return;
+    }
     setState(() {
       isLoading = true;
     });
-
     final tempRecipes = await _service.getRecipes(name);
 
     tempRecipes.sort((a, b) {
@@ -49,6 +73,7 @@ class _SearchPageState extends State<SearchPage> {
       recipes = tempRecipes;
       isLoading = false;
       query = name;
+      _controller.text = name.trim();
     });
   }
 
@@ -111,7 +136,15 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: Center(
               child: isLoading
-                  ? const CircularProgressIndicator()
+                  ? Image.asset(
+                // 'assets/images/loading.gif', //40
+                // 'assets/images/rolling-loading.gif', //75
+                'assets/images/mixing-bowl.gif', //150
+                // 'assets/images/mixing-machine.gif', //150
+
+                width: 150,
+                height: 150,
+              )
                   : recipes.isEmpty
                   ? const Text('No recipes found')
                   : ListView.builder(

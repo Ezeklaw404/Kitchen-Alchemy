@@ -27,7 +27,7 @@ class PageTemplate extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.amber.shade50,
     appBar: AppBar(title: Text(title,
-      // style: TextStyle(color: Colors.amber, fontFamily: 'Cutive'),
+      style: TextStyle(fontFamily: 'AbrilFatface', color: Colors.black),
 
     ),
       centerTitle: true,

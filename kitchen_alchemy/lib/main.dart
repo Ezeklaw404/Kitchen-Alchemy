@@ -40,7 +40,7 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Kitchen Alchemy',
        theme: ThemeData(
-      // fontFamily: 'Cutive'
+         fontFamily: 'Lato',
          elevatedButtonTheme: ElevatedButtonThemeData(
            style: ElevatedButton.styleFrom(
              backgroundColor: primaryBlueLight,

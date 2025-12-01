@@ -14,7 +14,8 @@ class IngredientItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(ingredient.name),
-      subtitle: Text('Id: ${ingredient.id}  ${ingredient.type}'),
+      subtitle: ingredient.dateAdded == null ? null
+      : Text('Added: ${ingredient.dateAdded!.month}/${ingredient.dateAdded!.day}/${ingredient.dateAdded!.year}'),
       dense: true,
 
       trailing: ingredient.isSelected ? Icon(Icons.check) : null,

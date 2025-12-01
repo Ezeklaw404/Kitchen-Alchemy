@@ -182,3 +182,15 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 }
+
+
+// ? Image.asset( TODO fix loading in scanner
+// // 'assets/images/loading.gif', //40
+// // 'assets/images/rolling-loading.gif', //75
+// 'assets/images/mixing-bowl.gif', //150
+// // 'assets/images/mixing-machine.gif', //150
+//
+// width: 150,
+// height: 150,
+// )
+// :

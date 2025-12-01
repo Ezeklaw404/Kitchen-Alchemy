@@ -48,14 +48,25 @@ class _RecipePageState extends State<RecipePage> {
     });
   }
 
+  void _showFlushbar({required String message, required Color color}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Flushbar(
+        message: message,
+        duration: const Duration(seconds: 2),
+        flushbarPosition: FlushbarPosition.TOP,
+        margin: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(12),
+        backgroundColor: color,
+        messageColor: Color(0xFF0F3570),
+      ).show(context);
+    });
+  }
 
   void _openCompleteRecipeDialog() async {
     if (recipe == null) return;
 
-    // Get user's inventory
     final userIngredients = await _service.getInventory();
 
-    // Map recipe ingredient -> inventory object (if user has it)
     final Map<String, Ingredient> availableMap = {};
     for (var entry in recipe!.ingredients.entries) {
       final inv = userIngredients.firstWhere(
@@ -67,22 +78,20 @@ class _RecipePageState extends State<RecipePage> {
       }
     }
 
-    if (availableMap.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You have no ingredients for this recipe!')),
-      );
-      return;
-    }
+    // if (availableMap.isEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('You have no ingredients for this recipe!')),
+    //   );
+    //   return;
+    // } TODO can still complete when missing ingredients, userSetting
 
-    // Start with all deselected
     final selectedItems = <String>{};
 
-    // Show the dialog
     final selectedNames = await showDialog<List<String>>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Select used ingredients'),
+          title: const Text('Mark used items as gone'),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView(
@@ -124,77 +133,54 @@ class _RecipePageState extends State<RecipePage> {
     );
 
     if (selectedNames != null && selectedNames.isNotEmpty) {
-      // Only remove the selected ingredients from inventory
       final selectedIngredients = selectedNames.map((n) => availableMap[n]!).toList();
 
       await _service.removeInventoryIngredients(selectedIngredients);
 
-      Flushbar(
-        message: 'Removed ${selectedIngredients.length} ingredients from your inventory',
-        duration: const Duration(seconds: 2),
-        flushbarPosition: FlushbarPosition.TOP,
-        margin: const EdgeInsets.all(16),
-        borderRadius: BorderRadius.circular(12),
-        backgroundColor: const Color(0xFF7AA6ED),
-        messageColor: const Color(0xFF0F3570),
-      ).show(context);
+      _showFlushbar(message: 'Removed ${selectedIngredients.length} ingredients from your inventory',
+          color: Color(0xFF7AA6ED));
     }
   }
-
-
-
 
 
   Future<void> addMissingIngredientsToShoppingList() async {
     setState(() => _isLoading = true);
 
     try {
+      final inventory = await _service.getInventory();
       List<Ingredient> ingredientList = [];
 
       for (final entry in recipe!.ingredients.entries) {
         final ingredient = await _ingService.getIngredientByName(entry.key);
-        if (ingredient != null) ingredientList.add(ingredient);
+        if (ingredient == null) continue;
+
+        final alreadyOwned = inventory.any((inv) =>
+        inv.name.toLowerCase().trim() ==
+            ingredient.name.toLowerCase().trim());
+
+        if (!alreadyOwned) {
+          ingredientList.add(ingredient);
+        }
       }
 
       if (ingredientList.isEmpty) {
-        Flushbar(
-          message: 'No missing ingredients found',
-          duration: const Duration(seconds: 2),
-          flushbarPosition: FlushbarPosition.TOP,
-          margin: const EdgeInsets.all(16),
-          borderRadius: BorderRadius.circular(12),
-          backgroundColor: const Color(0xFF7AA6ED),
-          messageColor: const Color(0xFF0F3570),
-        ).show(context);
+        _showFlushbar(message: 'No missing ingredients found', color: Color(0xFF7AA6ED));
         return;
       }
 
       await _service.addSelectedItems(ingredientList, false);
 
-      Flushbar(
-        message: 'Added ${ingredientList.length} ingredients to Shopping List',
-        duration: const Duration(seconds: 2),
-        flushbarPosition: FlushbarPosition.TOP,
-        margin: const EdgeInsets.all(16),
-        borderRadius: BorderRadius.circular(12),
-        backgroundColor: const Color(0xFF7AA6ED),
-        messageColor: const Color(0xFF0F3570),
-      ).show(context);
+      _showFlushbar(message: 'ingredients to Shopping List', color: Color(0xFF7AA6ED));
+
 
     } catch (e) {
-      Flushbar(
-        message: 'Error: $e',
-        duration: const Duration(seconds: 2),
-        flushbarPosition: FlushbarPosition.TOP,
-        margin: const EdgeInsets.all(16),
-        borderRadius: BorderRadius.circular(12),
-        backgroundColor: Colors.red.shade400,
-        messageColor: Colors.white,
-      ).show(context);
+      _showFlushbar(message: 'Error: $e', color: Colors.red.shade400);
     } finally {
       setState(() => _isLoading = false);
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -235,11 +221,12 @@ class _RecipePageState extends State<RecipePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Thumbnail
                 if (recipe.thumbnailUrl != null && recipe.thumbnailUrl!.isNotEmpty)
                   DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: const [BoxShadow(blurRadius: 8)],
+                      boxShadow: const [BoxShadow(blurRadius: 8, color: Colors.black26)],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
@@ -252,101 +239,154 @@ class _RecipePageState extends State<RecipePage> {
                     ),
                   )
                 else
-                  const Icon(Icons.image_not_supported, size: 120),
+                  const Icon(Icons.image_not_supported, size: 120, color: Colors.grey),
 
                 const SizedBox(height: 16),
 
-                Text(
-                  'Category: ${recipe.category ?? "Unknown"}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(
-                  'Area: ${recipe.area ?? "Unknown"}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                // Category & Area
+                Center(
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
+                    children: [
+                      Chip(
+                        label: Text(
+                          'Category: ${recipe.category ?? "Unknown"}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: Colors.orange.shade100,
+                      ),
+                      Chip(
+                        label: Text(
+                          '${recipe.area ?? "Unknown"}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: Colors.blue.shade100,
+                      ),
+                    ],
+                  ),
                 ),
 
                 if (recipe.tags != null && recipe.tags!.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Text('Tags: ${recipe.tags!}'),
+                  Center(
+                    child: Text(
+                      'Tags: ${recipe.tags!}',
+                      style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                    ),
+                  ),
                 ],
 
                 const SizedBox(height: 24),
 
-                const Text(
-                  'Ingredients:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // Ingredients heading
+                Center(
+                  child: Text(
+                    'Ingredients',
+                    style: const TextStyle(fontFamily: 'AbrilFatface', fontSize: 24),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                for (final entry in recipe.ingredients.entries)
-                  Text('${entry.value}: ${entry.key}'),
 
-                const SizedBox(height: 12),
-                SizedBox(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : addMissingIngredientsToShoppingList,
-                    child: _isLoading
-                        ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                // Ingredients list
+                ...recipe.ingredients.entries.map(
+                      (entry) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                    child: Text(
+                      '${entry.value} ${entry.key}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                Center(
+                  child: SizedBox(
+                    width: 200,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                    )
-                        : const Text('Add to Shopping List'),
+                      onPressed: _isLoading ? null : addMissingIngredientsToShoppingList,
+                      child: _isLoading
+                          ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Text('Add to Shopping List'),
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: 24),
 
+                // YouTube video
                 if (recipe.youtubeUrl != null && recipe.youtubeUrl!.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-
                   YoutubePlayer(
                     controller: YoutubePlayerController(
                       initialVideoId: YoutubePlayer.convertUrlToId(recipe.youtubeUrl!)!,
-                      flags: const YoutubePlayerFlags(
-                        autoPlay: false,
-                        mute: false,
-                      ),
+                      flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
                     ),
                     showVideoProgressIndicator: true,
                   ),
+                  const SizedBox(height: 24),
                 ],
 
-                const SizedBox(height: 24),
-
-                const Text(
-                  'Instructions:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // Instructions heading
+                Center(
+                  child: Text(
+                    'Instructions',
+                    style: const TextStyle(fontFamily: 'AbrilFatface', fontSize: 24),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text(recipe.instructions),
+                Text(
+                  recipe.instructions,
+                  style: const TextStyle(fontSize: 16, height: 1.4),
+                ),
 
-                SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _openCompleteRecipeDialog(),
-                    child: const Text('Complete Recipe'),
+                const SizedBox(height: 16),
+                Center(
+                  child: SizedBox(
+                    width: 200,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => _openCompleteRecipeDialog(),
+                      child: const Text('Complete Recipe'),
+                    ),
                   ),
                 ),
 
-
-
-                if (recipe.sourceUrl != null && recipe.sourceUrl!.isNotEmpty)
-                  TextButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(recipe.sourceUrl!);
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    icon: const Icon(Icons.link),
-                    label: const Text('View Recipe Source'),
+                if (recipe.sourceUrl != null && recipe.sourceUrl!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final url = Uri.parse(recipe.sourceUrl!);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.link),
+                      label: const Text('View Recipe Source'),
+                    ),
                   ),
+                ],
               ],
             ),
+
           ),
         ),
 

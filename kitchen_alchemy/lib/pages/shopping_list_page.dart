@@ -7,17 +7,20 @@ import 'package:kitchen_alchemy/services/firestore_service.dart';
 
 class ShoppingListPage extends StatefulWidget {
   final bool boolInventory;
+
   const ShoppingListPage({super.key, this.boolInventory = true});
 
   @override
   State<ShoppingListPage> createState() => _ShoppingListPageState();
 }
 
-
 class _ShoppingListPageState extends State<ShoppingListPage> {
   final _service = FirestoreService();
   List<Ingredient> _ingredients = [];
   String? _error;
+  bool isSearching = false;
+  String query = '';
+  TextEditingController _searchController = TextEditingController();
 
   bool _selectMode = false;
   Set<String> _selectedIds = {};
@@ -32,7 +35,8 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
   }
 
   void _showFlushbarFromArgs() {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     if (args != null && args['showFlushbar'] == true) {
       final message = args['message'] ?? '';
@@ -66,17 +70,17 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
         _ingredients?.remove(ingredient);
       });
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error deleting: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error deleting: $e')));
     }
   }
-
 
   Future<void> _moveToInventory() async {
     if (_ingredients.isEmpty) {
       _showFlushbar(
         message: 'Shopping list is empty',
-        color: Theme.of(context).colorScheme.error,
+        color: Colors.red.shade100,
       );
       return;
     }
@@ -90,14 +94,15 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
         }
       });
       _showFlushbar(
-        message: 'Tap ingredients to unselect items you didn’t get',
+        message: 'Unselect any items you didn’t get, then click Confirm.',
         color: Color(0xFF7AA6ED),
       );
       return;
     }
 
-    final selectedIngredients =
-    _ingredients.where((i) => _selectedIds.contains(i.id)).toList();
+    final selectedIngredients = _ingredients
+        .where((i) => _selectedIds.contains(i.id))
+        .toList();
     if (selectedIngredients.isEmpty) return;
 
     try {
@@ -135,37 +140,76 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
     });
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     Widget body;
-    if (_ingredients == null) {
-      body = const Center(child: CircularProgressIndicator());
-    } else if (_error != null) {
+    if (_error != null) {
       body = Center(child: Text('Error: $_error'));
     } else {
+      final displayed = _ingredients
+          .where((i) => i.name.toLowerCase().contains(query))
+          .toList();
+
       body = IngredientListTemplate(
-        ingredients: _ingredients,
+        ingredients: displayed,
         removable: !_selectMode,
         onRemove: _removeIngredient,
         onTap: _selectMode
             ? (ingredient) {
-          if (!_selectMode) return;
-          setState(() {
-            ingredient.isSelected = !ingredient.isSelected;
-            if (ingredient.isSelected) {
-              _selectedIds.add(ingredient.id);
-            } else {
-              _selectedIds.remove(ingredient.id);
-            }
-          });
-        } : null,
+                setState(() {
+                  ingredient.isSelected = !ingredient.isSelected;
+                  if (ingredient.isSelected) {
+                    _selectedIds.add(ingredient.id);
+                  } else {
+                    _selectedIds.remove(ingredient.id);
+                  }
+                });
+              }
+            : null,
       );
     }
 
     return PageTemplate(
-      title: 'Shopping List',
+      title: !isSearching ? 'Shopping List' : '',
+      actions: [
+        isSearching
+            ? Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: 40,
+                alignment: Alignment.center,
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search...',
+                    border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF0F3570), width: 2),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  onChanged: (value) =>
+                      setState(() => query = value.toLowerCase()),
+                ),
+              )
+            : IconButton(
+                icon: Icon(Icons.search, color: Color(0xFF0F3570)),
+                onPressed: () => setState(() => isSearching = true),
+              ),
+        if (isSearching)
+          IconButton(
+            icon: Icon(Icons.close, color: Color(0xFF0F3570)),
+            onPressed: () {
+              _searchController.clear();
+              setState(() {
+                query = '';
+                isSearching = false;
+              });
+            },
+          ),
+      ],
       route: '/shop-list',
       showDrawer: true,
       navIndex: 3,
@@ -175,7 +219,6 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
-
             heroTag: 'addIngredient',
             onPressed: () {
               Navigator.pushNamed(
@@ -185,20 +228,15 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
               );
             },
             child: const Icon(Icons.add),
-            // child: const Icon(Icons.playlist_add),
           ),
           const SizedBox(height: 12),
           FloatingActionButton(
-
             heroTag: 'moveToInventory',
             onPressed: _moveToInventory,
-            child: const Icon(Icons.shopping_cart),
+            child: _selectMode ? Icon(Icons.check) : Icon(Icons.shopping_cart),
           ),
         ],
       ),
     );
   }
 }
-
-
-

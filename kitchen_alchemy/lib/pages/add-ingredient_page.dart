@@ -1,12 +1,9 @@
-import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
-import 'package:kitchen_alchemy/main.dart';
 import 'package:kitchen_alchemy/models/ingredient.dart';
 import 'package:kitchen_alchemy/services/firestore_service.dart';
 import 'package:kitchen_alchemy/widgets/ingredient_list.dart';
 import 'package:kitchen_alchemy/widgets/page_template.dart';
 import 'package:kitchen_alchemy/services/ingredient_service.dart';
-import 'package:kitchen_alchemy/widgets/ingredient_item.dart';
 
 class IngredientPage extends StatefulWidget {
   const IngredientPage({super.key});
@@ -41,8 +38,10 @@ class _IngredientPageState extends State<IngredientPage> {
       final ingredients = await _service.getAllIngredients();
 
       final filtered = ingredients.where((ingredient) {
-        return !_userIngredients.any((existing) =>
-        existing.name.toLowerCase() == ingredient.name.toLowerCase());
+        return !_userIngredients.any(
+          (existing) =>
+              existing.name.toLowerCase() == ingredient.name.toLowerCase(),
+        );
       }).toList();
 
       setState(() {
@@ -78,29 +77,33 @@ class _IngredientPageState extends State<IngredientPage> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               onChanged: (value) => setState(() => query = value.toLowerCase()),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF1B5E20)),
                 ),
                 labelText: 'Enter Name or Id',
-                labelStyle: TextStyle(
-                  color: Colors.black,
-
-                ),
+                labelStyle: TextStyle(color: Colors.black),
               ),
             ),
           ),
           if (_isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
+            Expanded(
+              child: Center(
+                child: Image.asset(
+                  // 'assets/images/loading.gif', //40
+                  // 'assets/images/rolling-loading.gif', //75
+                  'assets/images/mixing-bowl.gif', //150
+                  // 'assets/images/mixing-machine.gif', //150
+                  width: 150,
+                  height: 150,
+                ),
+              ),
+            )
           else if (_error != null)
             Expanded(child: Center(child: Text('Error: $_error')))
           else
-            // filtered list
             Expanded(child: _buildIngredientList()),
         ],
       ),
@@ -111,22 +114,21 @@ class _IngredientPageState extends State<IngredientPage> {
           if (selected.isNotEmpty) {
             _addItems(selected, boolInventory);
           }
-            Navigator.pushReplacementNamed(
-              context,
-              boolInventory ? '/inventory' : '/shop-list',
-              arguments: {
-                'showFlushbar': true,
-                'message': selected.isEmpty
-                    ? 'No ingredients added'
-                    : '${selected.length} ingredients added',
-                'color': selected.isEmpty
-                    ? Color(0xFFFFCDD2) //error
-                    : Color(0xFF7AA6ED),
-              },
-            );
-
+          Navigator.pushReplacementNamed(
+            context,
+            boolInventory ? '/inventory' : '/shop-list',
+            arguments: {
+              'showFlushbar': true,
+              'message': selected.isEmpty
+                  ? 'No ingredients added'
+                  : '${selected.length} ingredients added',
+              'color': selected.isEmpty
+                  ? Color(0xFFFFCDD2) //error
+                  : Color(0xFF7AA6ED),
+            },
+          );
         },
-        child: Text('Add'),
+        child: Icon(Icons.check),
       ),
     );
   }
@@ -135,9 +137,9 @@ class _IngredientPageState extends State<IngredientPage> {
     final filtered = _ingredients
         .where(
           (i) =>
-      i.name.toLowerCase().contains(query) ||
-          i.id.toLowerCase().contains(query),
-    )
+              i.name.toLowerCase().contains(query) ||
+              i.id.toLowerCase().contains(query),
+        )
         .toList();
 
     if (filtered.isEmpty) {
