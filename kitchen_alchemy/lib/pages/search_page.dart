@@ -52,30 +52,52 @@ class _SearchPageState extends State<SearchPage> {
   void getRecipe(String name) async {
     if (allRecipes.isEmpty) return;
 
-    if (name.trim().isEmpty) {
+    final queryLower = name.toLowerCase().trim();
+
+    if (queryLower.isEmpty) {
       setState(() {
         recipes = List.from(allRecipes);
+        _controller.text = '';
       });
       return;
     }
+
     setState(() {
       isLoading = true;
     });
-    final tempRecipes = await _service.getRecipes(name);
 
-    tempRecipes.sort((a, b) {
+    final fetchedRecipes = await _service.getRecipes(name);
+
+    final localMatches = allRecipes.where((r) {
+      final tags = r.tags?.split(',').map((t) => t.toLowerCase().trim()).toList() ?? [];
+      final area = r.area?.toLowerCase() ?? '';
+      final recipeName = r.name.toLowerCase();
+      return recipeName.contains(queryLower) || tags.contains(queryLower) || area.contains(queryLower);
+    }).toList();
+
+    final Map<String, Recipe> mergedMap = {};
+    for (final r in fetchedRecipes) {
+      mergedMap[r.id] = r;
+    }
+    for (final r in localMatches) {
+      mergedMap[r.id] = r;
+    }
+    final merged = mergedMap.values.toList();
+
+    merged.sort((a, b) {
       final pa = ingredientMatchPercent(a);
       final pb = ingredientMatchPercent(b);
-
       return pb.compareTo(pa);
     });
+
     setState(() {
-      recipes = tempRecipes;
+      recipes = merged;
       isLoading = false;
       query = name;
-      _controller.text = name.trim();
+      _controller.text = name;
     });
   }
+
 
   double ingredientMatchPercent(Recipe recipe) {
     if (_userIngredients.isEmpty) return 0;

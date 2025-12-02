@@ -17,6 +17,7 @@ class _InventoryPageState extends State<InventoryPage> {
   List<Ingredient> _ingredients = [];
   String? _error;
   bool isSearching = false;
+  bool _isLoading = true;
   String query = '';
   TextEditingController _searchController = TextEditingController();
 
@@ -46,9 +47,13 @@ class _InventoryPageState extends State<InventoryPage> {
       final ingredients = await _service.getInventory();
       setState(() {
         _ingredients = ingredients;
+        _isLoading = false;
       });
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
@@ -85,6 +90,14 @@ class _InventoryPageState extends State<InventoryPage> {
     Widget body;
     if (_error != null) {
       body = Center(child: Text('Error: $_error'));
+    } else if (_isLoading) {
+      body = Center(
+        child: Image.asset(
+          'assets/images/mixing-bowl.gif',
+          width: 150,
+          height: 150,
+        ),
+      );
     } else if (_ingredients.isEmpty) {
       body = Center(child: Text('Your Inventory is Empty'));
     } else {

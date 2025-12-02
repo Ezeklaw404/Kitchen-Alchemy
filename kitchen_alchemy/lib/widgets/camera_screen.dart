@@ -17,17 +17,26 @@ class CameraScreen extends StatefulWidget {
   State<CameraScreen> createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraScreenState extends State<CameraScreen> with SingleTickerProviderStateMixin{
   String _scanResult = '';
   bool _isProcessing = false;
   final _barcodeService = BarcodeService();
   final _ingredientService = IngredientService();
   final _dbService = FirestoreService();
+  late AnimationController _controller;
+  late Animation<double> _animation;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
 
     _scanResult = 'No scan yet';
     SystemChrome.setPreferredOrientations([
@@ -39,6 +48,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void dispose() {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -68,7 +78,7 @@ class _CameraScreenState extends State<CameraScreen> {
       );
       if (product == null) {
         _showFlushbar(message: 'No product found for this barcode',
-            isError: true); //TODO ive never seen this, usually just says scan error instead
+            isError: true);
         return;
       }
 
@@ -133,7 +143,7 @@ class _CameraScreenState extends State<CameraScreen> {
       });
     } catch (e, stack) {
       debugPrint('Error loading barcode: $e\n$stack');
-      _showFlushbar(message: 'Failed to load barcode: $e',
+      _showFlushbar(message: 'No product found for this barcode',
           isError: true);
     } finally {
       setState(() => _isProcessing = false);
@@ -143,36 +153,49 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final cameraHeight = MediaQuery.of(context).size.height * 0.55;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+
         Container(
           width: screenWidth,
-          height: screenWidth * 4 / 3,
-          // 4:3 aspect ratio, adjust as needed
+          height: cameraHeight,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(3),
-            // border: Border.all(color: Color(0xFF110E0B), width: 3),
           ),
           clipBehavior: Clip.hardEdge,
-          child: MobileScanner(
-            onDetect: (barcodeCapture) {
-              final barcode = barcodeCapture.barcodes.first;
-              final rawValue = barcode.rawValue ?? '';
+          child: Stack(
+            children: [
+              MobileScanner(
+                onDetect: (barcodeCapture) {
+                  final barcode = barcodeCapture.barcodes.first;
+                  final rawValue = barcode.rawValue ?? '';
 
-              if (barcode.format == BarcodeFormat.qrCode || rawValue.isEmpty) {
-                return;
-              }
+                  if (barcode.format == BarcodeFormat.qrCode || rawValue.isEmpty) return;
+                  _loadBarcode(rawValue);
+                },
+              ),
 
-              _loadBarcode(rawValue);
-            },
+              const ScannerOverlay(),
+            ],
           ),
         ),
         const SizedBox(height: 16),
+        if (_isProcessing)
+          Center(
+            child: Image.asset(
+              'assets/images/mixing-bowl.gif',
+              width: 120,
+              height: 120,
+            ),
+          ),
+
+        const SizedBox(height: 6),
         Text(
           _isProcessing
-              ? 'Processing...'
+              ? ''
               : _scanResult == null
               ? 'Scan a code'
               : 'last scan: $_scanResult',
@@ -183,14 +206,108 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 }
 
+class ScannerOverlayPainter extends CustomPainter {
+  final double linePosition; // 0 = top, 1 = bottom
+  ScannerOverlayPainter({this.linePosition = 0});
 
-// ? Image.asset( TODO fix loading in scanner
-// // 'assets/images/loading.gif', //40
-// // 'assets/images/rolling-loading.gif', //75
-// 'assets/images/mixing-bowl.gif', //150
-// // 'assets/images/mixing-machine.gif', //150
-//
-// width: 150,
-// height: 150,
-// )
-// :
+  @override
+  void paint(Canvas canvas, Size size) {
+    final overlayPaint = Paint()..color = Colors.black.withOpacity(0.55);
+
+    const double boxWidth = 260;
+    const double boxHeight = 175;
+    const double cornerRadius = 12;
+
+    final left = (size.width - boxWidth) / 2;
+    final top = (size.height - boxHeight) / 2;
+    final rect = RRect.fromLTRBR(
+      left,
+      top,
+      left + boxWidth,
+      top + boxHeight,
+      Radius.circular(cornerRadius),
+    );
+
+    // Draw dark overlay with cutout
+    final full = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final hole = Path()..addRRect(rect);
+    final path = Path.combine(PathOperation.difference, full, hole);
+    canvas.drawPath(path, overlayPaint);
+
+    // Draw border
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawRRect(rect, borderPaint);
+
+    // Draw moving red laser line
+    final linePaint = Paint()
+      ..color = Colors.redAccent.withOpacity(0.7)
+      ..strokeWidth = 2;
+
+    final double laserPadding = 6;
+    final lineY = top + laserPadding + (boxHeight - laserPadding * 2) * linePosition;
+
+    canvas.drawLine(
+      Offset(left + 4, lineY),
+      Offset(left + boxWidth - 4, lineY),
+      linePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant ScannerOverlayPainter oldDelegate) => true;
+}
+
+class ScannerOverlay extends StatefulWidget {
+  const ScannerOverlay({super.key});
+
+  @override
+  State<ScannerOverlay> createState() => _ScannerOverlayState();
+}
+
+class _ScannerOverlayState extends State<ScannerOverlay>
+    with SingleTickerProviderStateMixin {
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (_, __) {
+          return CustomPaint(
+            size: size,
+            painter: ScannerOverlayPainter(
+              linePosition: _animation.value,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
