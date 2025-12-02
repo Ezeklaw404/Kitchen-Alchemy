@@ -34,7 +34,7 @@ class NavDrawer extends StatelessWidget {
 
           // _buildDrawerItem(context, Icons.camera, 'Scanner', '/scanner'),
 
-          _buildDrawerItem(context, Icons.settings, 'Settings', '/settings'),
+          // _buildDrawerItem(context, Icons.settings, 'Settings', '/settings'),
 
           // _buildDrawerItem(context, Icons.shopping_cart, 'Shopping List', '/shop-list'),
           // _buildDrawerItem(context, Icons.list, 'Shopping List', '/shop-list'),
